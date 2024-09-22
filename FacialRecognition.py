@@ -11,12 +11,15 @@ def recognition(imgArr, userImg):
     # This will loop over all the cropped faces in a group photo, and match the cropped faces with the 
     # user's image. If a match is found, it will return True, else False.
     for img in imgArr:
-        rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+        rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
         try:
-            unknown_encoding = face_recognition.face_encodings(rgb_image)[0]
+            unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
         except Exception as e:
             pass
-        results = face_recognition.compare_faces([known_encoding], unknown_encoding)
+
+        # Use the compare_faces function of the facial_recognition model to compare the cropped face and the user's real face
+        results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
+        
         if results[0]:
             return True
     return False

@@ -29,4 +29,14 @@ def recognition(imgArr, userImg):
     return False
 
 
+def cropOut(image_path, userImg):
+    image = cv2.imread(image_path)
+    imgArray = [] 
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+
+    return None
+
+
+
 

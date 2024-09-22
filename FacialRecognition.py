@@ -8,6 +8,13 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 arrUsers = ["abir.jpg","rdj.jpg", "rdj2.jpg", "biden.jpg"]
 arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
 
+
+def test(users, groupImgs):
+    for user in users:
+        print("User-"+user)
+        for groupImg in groupImgs:
+            print(cropOut(groupImg, user))
+
 def recognition(imgArr, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
     known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image

@@ -41,8 +41,8 @@ def cropOut(image_path, userImg):
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
-    return None
-
-
+    for i, (x, y, w, h) in enumerate(faces):
+        face = image[y:y+h, x:x+w]
+        imgArray.append(face)
 
 

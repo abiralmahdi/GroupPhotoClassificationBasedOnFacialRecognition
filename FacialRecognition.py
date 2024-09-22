@@ -55,4 +55,6 @@ def cropOut(image_path, userImg):
     
     return recognition(imgArray, userImg)
 
+# Testing the other two functions by using the test function
+print(test(arrUsers, arrGroupImgs))
 

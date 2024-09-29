@@ -27,13 +27,19 @@ class Picture(models.Model):
         return f"Image {self.image_id} uploaded by {self.uploader.username}"
 
 # Event model where each event is linked to a guest (ForeignKey to User)
+from django.db import models
+from django.contrib.auth.models import User
+
+
 class Event(models.Model):
+    host = models.ForeignKey(User, on_delete=models.CASCADE, related_name='hosted_events', default="")  # Default user ID
     event_id = models.AutoField(primary_key=True)
-    guest = models.ForeignKey(User, on_delete=models.CASCADE)  # ForeignKey to User
+    guest = models.ForeignKey(User, on_delete=models.CASCADE, related_name='guest_events', default="")
     event_date = models.DateField()
 
     def __str__(self):
-        return f"Event {self.event_id} for guest {self.guest.username}"
+        return f"Event {self.event_id} hosted by {self.host.username} for guest {self.guest.username}"
+
 
 # PicsRelation model to relate a picture to a user (ForeignKey to Picture and User)
 class PicsRelation(models.Model):

@@ -21,7 +21,7 @@ class PictureSerializer(serializers.ModelSerializer):
 class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
-        fields = ['eventid', 'guest', 'eventdate']
+        fields = ['host','eventid', 'guest', 'eventdate']
 
 class PicsRelationSerializer(serializers.ModelSerializer):
     class Meta:

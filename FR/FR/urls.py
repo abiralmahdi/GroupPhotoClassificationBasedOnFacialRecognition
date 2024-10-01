@@ -21,6 +21,6 @@ urlpatterns = [
     path('api/events/host/<int:user_id>/', EventByHostView.as_view(), name='events_by_host'),
     path('api/events/guest/<int:user_id>/', EventGuestView.as_view(), name='events_by_host'),
 
-     path('accounts/', include('accounts.urls')), 
+    path('accounts/', include('accounts.urls')), 
 ]
 

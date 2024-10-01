@@ -36,23 +36,26 @@ def recognition(imgArr, userImg):
     return False
 
 
-# Function for cropping out the faces of the people in a group picture
 def cropOut(image_path, userImg):
     image = cv2.imread(image_path)
-    imgArray = [] # Array to store the cropped images
+    if image is None:
+        print(f"Error: Could not load image at path {image_path}")
+        return False  # or any appropriate return value to indicate failure
+
+    imgArray = []  # Array to store the cropped images
     # Convert the image to grayscale as the face detector expects a gray image
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     # Detect faces in the image
     faces = face_cascade.detectMultiScale(gray, scaleFactor=1.1, minNeighbors=5, minSize=(30, 30))
     # Draw rectangles around each of the faces
     for (x, y, w, h) in faces:
-        cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)      
+        cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
-    # crop out the faces from the actual image
+    # Crop out the faces from the actual image
     for i, (x, y, w, h) in enumerate(faces):
-        face = image[y:y+h, x:x+w] # slice/crop the face
-        imgArray.append(face) # store the cropped image in an array
-    
+        face = image[y:y + h, x:x + w]  # slice/crop the face
+        imgArray.append(face)  # store the cropped image in an array
+
     return recognition(imgArray, userImg)
 
 # Testing the other two functions by using the test function

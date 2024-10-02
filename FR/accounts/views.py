@@ -40,14 +40,16 @@ def register(request):
         Email=data.get('email')
         password=data.get('password')
         rpassword=data.get('cpassword')
+        contact = data.get('contact')
 
         if checkvalidity(request,password,rpassword,Email):
-            username=f"{Firstname} {Lastname}"
+            username=Email
             user = User.objects.create(username=username, email=Email, first_name=Firstname, last_name=Lastname)
+            user.contact = contact
             user.set_password(password) 
             user.save()
             messages.success(request, "Registration successful. You can now log in.")
-            return redirect('/home/')
+            return redirect('/')
         
     return render(request,"register.html")
     

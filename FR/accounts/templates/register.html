@@ -8,7 +8,8 @@
             <p class="leading-relaxed mt-4">Poke slow-carb mixtape knausgaard, typewriter street art gentrify hammock
                 starladder roathse. Craies vegan tousled etsy austin.</p>
         </div>
-        <div class="lg:w-2/6 md:w-1/2 bg-gray-100 rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0">
+        <form class="lg:w-2/6 md:w-1/2 bg-gray-100 rounded-lg p-8 flex flex-col md:ml-auto w-full mt-10 md:mt-0" action="/accounts/register" method="POST">
+            {% csrf_token %}
             <h2 class="text-gray-900 text-lg font-medium title-font mb-5">Create an Account</h2>
             <div class="relative mb-4">
                 <input type="text" id="full-name" name="first-name" placeholder="First Name"
@@ -34,9 +35,9 @@
                 <input type="password" id="cpassword" name="cpassword"  placeholder="Confirm Password"
                     class="w-full bg-white rounded border border-gray-300 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 text-base outline-none text-gray-700 py-1 px-3 leading-8 transition-colors duration-200 ease-in-out">
             </div>
-            <button class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Button</button>
+            <button type="submit" class="text-white bg-indigo-500 border-0 py-2 px-8 focus:outline-none hover:bg-indigo-600 rounded text-lg">Sign Up</button>
             <p class="text-xs text-gray-500 mt-3">Literally you probably haven't heard of them jean shorts.</p>
-        </div>
+        </form>
     </div>
 </section>
 {% endblock %}

@@ -11,5 +11,11 @@ class CustomUserAdmin(UserAdmin):
         (None, {'fields': ('contact', 'profilepicture')}),
     )
 
+    def delete_model(self, request, obj):
+        # Custom delete logic, deleting related objects first if necessary
+        obj.groups.clear()
+        obj.user_permissions.clear()
+        obj.delete()
+
 # Register the custom User model
 admin.site.register(User, CustomUserAdmin)

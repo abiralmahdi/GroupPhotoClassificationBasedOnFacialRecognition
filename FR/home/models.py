@@ -18,13 +18,12 @@ from django.contrib.auth.models import User
 
 
 class Event(models.Model):
-    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_events', default="")  # Default user ID
-    event_id = models.AutoField(primary_key=True)
-    guest = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guest_events', default="")
-    event_date = models.DateField()
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_events', default="") 
+    guests = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guest_events')
+    event_date = models.DateField(default="")
 
     def __str__(self):
-        return f"Event {self.event_id} hosted by {self.host.username} for guest {self.guest.username}"
+        return f"Event {self.event_id} hosted by {self.host.username}"
 
 
 # PicsRelation model to relate a picture to a user (ForeignKey to Picture and User)

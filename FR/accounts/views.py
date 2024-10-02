@@ -1,34 +1,32 @@
 from django.shortcuts import render,redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate,login
+from django.contrib.auth import authenticate, login as auth_login
 from .models import *
+from django.contrib.auth.hashers import make_password
 
 def login(request):
-    if request.method=="POST":
-        data=request.POST
-        Email=data.get('email')
-        password=data.get('password')
+    if request.method == "POST":
+        data = request.POST
+        email = data.get('email')
+        password = data.get('password')
 
-        user=User.objects.filter(email=Email)
+        try:
+            user = User.objects.get(email=email)
+        except User.DoesNotExist:
+            messages.error(request, "User does not exist")
+            return redirect('/accounts/login')
 
-        if not user.exists() :
-            messages.error(request,"User doesn't Exists")
-            return redirect('/accounts/login/')
-        
+        user = authenticate(request, username=email, password=password)
+
+        if user is not None:
+            auth_login(request, user)  
+            messages.success(request, "Successfully logged in")
+            return redirect('/')
         else:
-            user=User.objects.get(email=Email)
-            username=user.username
-            user=authenticate(request,username=username,password=password)
-
-            if user is not None:
-                login(request,user)
-                return redirect('/chat/')
-             
-            else:
-                messages.error(request,"Invalid Password")
-                return redirect('/accounts/login/')
+            messages.error(request, "Invalid password")
+            return redirect('/accounts/login')
+    
     return render(request, "login.html")
-
 
 
 
@@ -43,10 +41,9 @@ def register(request):
         contact = data.get('contact')
 
         if checkvalidity(request,password,rpassword,Email):
-            username=Email
-            user = User.objects.create(username=username, email=Email, first_name=Firstname, last_name=Lastname)
+            user = User.objects.create(username=Email, email=Email, first_name=Firstname, last_name=Lastname, password=make_password(password))
             user.contact = contact
-            user.set_password(password) 
+            user.pw = password
             user.save()
             messages.success(request, "Registration successful. You can now log in.")
             return redirect('/')

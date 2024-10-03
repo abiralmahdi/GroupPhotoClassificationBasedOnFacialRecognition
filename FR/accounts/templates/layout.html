@@ -184,7 +184,7 @@ Note:
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
-            <form id="file-dropzone" class="dropzone"   enctype="multipart/form-data">
+            <form id="file-dropzone" class="dropzone"  action="{%url 'addEvents'%}" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>

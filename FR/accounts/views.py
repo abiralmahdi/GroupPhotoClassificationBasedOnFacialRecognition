@@ -21,7 +21,7 @@ def login(request):
         if user is not None:
             auth_login(request, user)  
             messages.success(request, "Successfully logged in")
-            return redirect('/homepage/')
+            return redirect('/')
         else:
             messages.error(request, "Invalid password")
             return redirect('/accounts/login/')
@@ -43,7 +43,7 @@ def register(request):
         if checkvalidity(request,password,rpassword,Email):
             user = User.objects.create(username=Email, email=Email, first_name=Firstname, last_name=Lastname, password=make_password(password))
             user.contact = contact
-            user.pw = password
+            user.pwd = password
             user.save()
             messages.success(request, "Registration successful. You can now log in.")
             return redirect('/accounts/login/')

@@ -1,5 +1,4 @@
 from django.db import models
-from accounts.models import User
 from django.conf import settings
 
 
@@ -12,19 +11,17 @@ class Picture(models.Model):
     def __str__(self):
         return f"Image {self.image_id} uploaded by {self.uploader.username}"
 
-# Event model where each event is linked to a guest (ForeignKey to User)
-from django.db import models
-from django.contrib.auth.models import User
-
 
 class Event(models.Model):
-    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_events', default="")  # Default user ID
-    event_id = models.AutoField(primary_key=True)
-    guest = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guest_events', default="")
-    event_date = models.DateField()
+    name = models.CharField(max_length=1000, default="")
+    description = models.CharField(max_length=1000, default="")
+    host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_events', default="") 
+    guest = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guest_events')
+    event_date = models.DateField(default="")
+    eventPic = models.ImageField(upload_to='images/eventPictures', blank=True, null=True)
 
     def __str__(self):
-        return f"Event {self.event_id} hosted by {self.host.username} for guest {self.guest.username}"
+        return f"Event {self.name} hosted by {self.host.username}"
 
 
 # PicsRelation model to relate a picture to a user (ForeignKey to Picture and User)

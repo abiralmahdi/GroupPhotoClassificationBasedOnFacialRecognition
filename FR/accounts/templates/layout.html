@@ -103,6 +103,16 @@ Note:
     .mainSection{
       height: 1000px !important;
     }
+    .sticky-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      z-index: 9999; /* Ensure the button stays on top */
+      border-radius: 100%;
+    }
+
+    body, html { height: 100%; }
+
   </style>
 
 
@@ -167,6 +177,7 @@ Note:
 
 
 
+  <a href="#" class="btn btn-primary sticky-btn" data-bs-toggle="tooltip" title="Create a new event"><i class="fas fa-4x fa-plus"></i></a>
   <footer class="text-gray-600 bg-dark body-font">
     <div
       class="container px-5 py-24 mx-auto flex md:items-center lg:items-start md:flex-row md:flex-nowrap flex-wrap flex-col">

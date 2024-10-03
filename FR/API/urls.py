@@ -23,6 +23,6 @@ urlpatterns = [
     path('token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('token/verify/', TokenVerifyView.as_view(), name='token_verify'),
     path('events/host/<int:user_id>/', EventByHostView.as_view(), name='events_by_host'),
-    path('events/guest/<int:user_id>/', EventGuestView.as_view(), name='events_by_host'),
+    path('events/guest/<int:user_id>/', EventGuestView.as_view(), name='events_by_guest'),
 
 ]

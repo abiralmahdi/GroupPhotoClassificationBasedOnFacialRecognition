@@ -391,7 +391,7 @@ Note:
     Dropzone.autoDiscover = false; // Prevent Dropzone from auto initializing
 
     Dropzone.options.fileDropzone = {
-        url: "/uploadImages", // Replace with your file upload URL
+        url: {% url 'addEvents' %}, // Replace with your file upload URL
         maxFilesize: 20,
         acceptedFiles: '.jpeg,.jpg,.png',
         autoProcessQueue: false,
@@ -429,7 +429,7 @@ Note:
                     .catch(error => {
                         console.log('Event creation failed:', error);
                         isSubmitted = false;
-                        document.querySelector("button[type=submit]").disabled = false;
+                        
                     });
                 }
             });
@@ -437,14 +437,14 @@ Note:
             // Reset after the queue is processed
             myDropzone.on("queuecomplete", function () {
                 isSubmitted = false;
-                document.querySelector("button[type=submit]").disabled = false;
+                
             });
 
             // Handle errors during upload
             myDropzone.on("error", function (file, response) {
                 console.log('File upload failed:', response);
                 isSubmitted = false;
-                document.querySelector("button[type=submit]").disabled = false;
+                
             });
         },
         sending: function (file, xhr, formData) {

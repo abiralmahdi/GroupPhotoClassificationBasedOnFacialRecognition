@@ -1,8 +1,7 @@
 from django.contrib import admin
 from django.urls import path
 from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenVerifyView
+
 
 
 
@@ -12,6 +11,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     
     path('accounts/', include('accounts.urls')), 
+    path('api/', include('API.urls')), 
 
 ]
 

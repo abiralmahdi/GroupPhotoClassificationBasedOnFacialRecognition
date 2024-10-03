@@ -184,7 +184,7 @@ Note:
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
-            <form id="file-dropzone" class="dropzone" action="{% url 'addEvents' %}" method="post" enctype="multipart/form-data">
+            <form id="file-dropzone" class="dropzone"   enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>
@@ -391,7 +391,7 @@ Note:
     Dropzone.autoDiscover = false; // Prevent Dropzone from auto initializing
 
     Dropzone.options.fileDropzone = {
-        url: {% url 'addEvents' %}, // Replace with your file upload URL
+        url: "{% url 'addEvents' %}", 
         maxFilesize: 20,
         acceptedFiles: '.jpeg,.jpg,.png',
         autoProcessQueue: false,
@@ -414,7 +414,7 @@ Note:
 
                     // First, create the event by submitting the form using Ajax
                     let formData = new FormData(e.target);
-                    fetch('/addEvents', {
+                    fetch('{% url 'addEvents' %}', {
                         method: 'POST',
                         body: formData
                     })

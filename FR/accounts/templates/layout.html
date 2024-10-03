@@ -37,7 +37,9 @@ Note:
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 
 <!-- Dropzone CSS -->
-<link href="https://cdn.jsdelivr.net/npm/dropzone@5.9.2/dist/dropzone.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/dropzone.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.js"></script>
+
 
   <!-- CSS -->
   <style>
@@ -182,7 +184,7 @@ Note:
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
-          <form action="/addEvents" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
+            <form id="file-dropzone" class="dropzone" action="{% url 'addEvents' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>
@@ -344,108 +346,125 @@ Note:
       </div>
     </div>
   </footer>
+  
   <script>
-    // Function to open the sidebar
+    // Sidebar Handling
     function openNav() {
-      let bar = document.getElementById("mySidenav").style.width;
-      if (bar === "0px") {
-      // If the sidebar is closed, open it
-      document.getElementById("mySidenav").style.width = "250px";
-      setTimeout(function () {
-        // Show the invisible items in the sidebar
+        let sidebar = document.getElementById("mySidenav");
+        if (sidebar.classList.contains("open")) {
+            closeNav();
+        } else {
+            sidebar.classList.add("open");
+            sidebar.style.width = "250px";
+            setTimeout(function () {
+                Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
+                    element.style.visibility = "visible";
+                });
+            }, 50);
+            Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
+                element.style.filter = "brightness(0.5)";
+            });
+        }
+    }
+
+    function closeNav() {
+        let sidebar = document.getElementById("mySidenav");
+        sidebar.classList.remove("open");
+        sidebar.style.width = "0";
         Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-        element.style.visibility = "visible";
+            element.style.visibility = "hidden";
         });
-      }, 50);
-
-      // Dim the main section
-      Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
-        element.style.filter = "brightness(0.5)";
-      });
-
-      } else {
-      // If the sidebar is open, close it
-      Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-        element.style.visibility = "hidden";
-      });
-      document.getElementById("mySidenav").style.width = "0";
-      Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
-        element.style.filter = "brightness(1)";
-      });
-
-      }
+        Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
+            element.style.filter = "brightness(1)";
+        });
     }
 
-    // Function to handle click events
-    function handleClick() {
-      // Hide the invisible items in the sidebar
-      Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-        element.style.visibility = "hidden";
-      });
-      // Close the sidebar
-      document.getElementById("mySidenav").style.width = "0";
-      // Restore the brightness of the main section
-      Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
-        element.style.filter = "brightness(1)";
-      });
-    }
-
-    // Add event listener to the section element
-    document.addEventListener("DOMContentLoaded", function() {
-      const section = document.querySelector("section");
-      section.addEventListener("click", handleClick);
+    // Handle main content clicks
+    document.addEventListener("DOMContentLoaded", function () {
+        const mainContent = document.querySelector(".mainSection");
+        if (mainContent) {
+            mainContent.addEventListener("click", closeNav);
+        }
     });
 
-    // Function to load the sidebar in a closed state
-    function onLoadNav() {
-      document.getElementById("mySidenav").style.width = "0";
-    }
-    // Call the onLoadNav function when the window is loaded
-    window.addEventListener("load", onLoadNav);
-    // Hide the invisible items in the sidebar
-    Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-      element.style.visibility = "hidden";
-    });
+    // Dropzone JS
+    Dropzone.autoDiscover = false; // Prevent Dropzone from auto initializing
 
-    // DropZone JS
     Dropzone.options.fileDropzone = {
-        maxFilesize: 20, // Set the maximum file size to 20MB
-        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
-        autoProcessQueue: false, // Don't auto process the queue
-        uploadMultiple: true, // Allow multiple files
-        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
+        url: "/uploadImages", // Replace with your file upload URL
+        maxFilesize: 20,
+        acceptedFiles: '.jpeg,.jpg,.png',
+        autoProcessQueue: false,
+        uploadMultiple: true,
+        parallelUploads: 10,
         addRemoveLinks: true,
         dictDefaultMessage: "Drag & drop images here to upload",
-        init: function() {
+        init: function () {
             var myDropzone = this;
-            
-            // When the form is submitted, manually process the Dropzone queue
-            document.querySelector("form").addEventListener("submit", function(e) {
+            let isSubmitted = false;
+
+            // Event listener for the form submission
+            document.querySelector("#eventForm").addEventListener("submit", function (e) {
                 e.preventDefault();
                 e.stopPropagation();
-                myDropzone.processQueue();
-            });
-            
-            // On successful upload
-            myDropzone.on("success", function(file, response) {
-                console.log('File uploaded successfully');
+
+                if (!isSubmitted) {
+                    isSubmitted = true;
+                    document.querySelector("button[type=submit]").disabled = true;  // Disable the submit button
+
+                    // First, create the event by submitting the form using Ajax
+                    let formData = new FormData(e.target);
+                    fetch('/addEvents', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            // If event creation is successful, process the Dropzone queue
+                            myDropzone.processQueue();
+                        } else {
+                            throw new Error('Failed to create event');
+                        }
+                    })
+                    .catch(error => {
+                        console.log('Event creation failed:', error);
+                        isSubmitted = false;
+                        document.querySelector("button[type=submit]").disabled = false;
+                    });
+                }
             });
 
-            // On error
-            myDropzone.on("error", function(file, response) {
-                console.log('File upload failed');
+            // Reset after the queue is processed
+            myDropzone.on("queuecomplete", function () {
+                isSubmitted = false;
+                document.querySelector("button[type=submit]").disabled = false;
+            });
+
+            // Handle errors during upload
+            myDropzone.on("error", function (file, response) {
+                console.log('File upload failed:', response);
+                isSubmitted = false;
+                document.querySelector("button[type=submit]").disabled = false;
             });
         },
-        // Set the name attribute for the file input
-        renameFile: function(file) {
-            return file.name; // Return the original name of the file
-        },
-        // Set the parameters for the request
-        sending: function(file, xhr, formData) {
-            formData.append("file", file); // Append the file to the form data
+        sending: function (file, xhr, formData) {
+            formData.append("file", file);
         }
     };
-  </script>
+
+    // Load sidebar in closed state
+    function onLoadNav() {
+        let sidebar = document.getElementById("mySidenav");
+        if (sidebar) {
+            sidebar.style.width = "0";
+            Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
+                element.style.visibility = "hidden";
+            });
+        }
+    }
+    window.addEventListener("load", onLoadNav);
+</script>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
     crossorigin="anonymous"></script>

@@ -1,6 +1,11 @@
 {% extends 'layout.html' %}
 {% block body %}
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+{% endif %}
 
 <section class="text-gray-600 bg-white body-font mainSection" style="transition: 0.25s;">
   <div class="container px-5 py-24 mx-auto">

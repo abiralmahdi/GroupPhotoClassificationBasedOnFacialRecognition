@@ -182,7 +182,7 @@ Note:
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
-          <form action="/addEvents" class="dropzone" id="file-dropzone" enctype="multipart/form-data">
+          <form action="/addEvents" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>
@@ -193,9 +193,9 @@ Note:
             <div class="mb-3">
               <select id="guests" name="guests" class="form-control" multiple>
                 {% for user in users %}
-                    <option value="{{ user.id }}">{{ user.username }}</option>
+                  <option value="{{ user.id }}">{{ user.username }}</option>
                 {% endfor %}
-            </select>
+              </select>
             </div>
             <div class="mb-3">
               <input type="date" class="form-control" id="date" name="date" placeholder="Event Date" required>
@@ -409,16 +409,42 @@ Note:
 
     // DropZone JS
     Dropzone.options.fileDropzone = {
-          maxFilesize: 20, // Set the maximum file size to 20MB
-          acceptedFiles: '.jpeg,.jpg,.png,', // Define accepted file types
-          success: function(file, response) {
-              console.log('File uploaded successfully');
-          },
-          error: function(file, response) {
-              console.log('File upload failed');
-          }
-      };
+        maxFilesize: 20, // Set the maximum file size to 20MB
+        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+        autoProcessQueue: false, // Don't auto process the queue
+        uploadMultiple: true, // Allow multiple files
+        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
+        addRemoveLinks: true,
+        dictDefaultMessage: "Drag & drop images here to upload",
+        init: function() {
+            var myDropzone = this;
+            
+            // When the form is submitted, manually process the Dropzone queue
+            document.querySelector("form").addEventListener("submit", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                myDropzone.processQueue();
+            });
+            
+            // On successful upload
+            myDropzone.on("success", function(file, response) {
+                console.log('File uploaded successfully');
+            });
 
+            // On error
+            myDropzone.on("error", function(file, response) {
+                console.log('File upload failed');
+            });
+        },
+        // Set the name attribute for the file input
+        renameFile: function(file) {
+            return file.name; // Return the original name of the file
+        },
+        // Set the parameters for the request
+        sending: function(file, xhr, formData) {
+            formData.append("file", file); // Append the file to the form data
+        }
+    };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"

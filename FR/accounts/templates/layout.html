@@ -23,6 +23,7 @@ Usage:
 Note:
 - This code is just a template and may require modifications to fit the specific needs of the application.
 -->
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 
@@ -30,6 +31,7 @@ Note:
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Document</title>
+  <link rel="stylesheet" href="{% static 'layout.css' %}">
   <link href="https://unpkg.com/tailwindcss@^1.0/dist/tailwind.min.css" rel="stylesheet" />
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
@@ -42,82 +44,7 @@ Note:
 
 
   <!-- CSS -->
-  <style>
-    .sidenav {
-      height: 100%;
-      position: fixed;
-      left: 0;
-      z-index: 999;
-      overflow-x: hidden;
-      padding-top: 60px;
-      background-color: #343a40;
-      /* Bootstrap dark background */
-      box-shadow: 2px 0px 10px rgba(0, 0, 0, 0.3);
-      /* Subtle shadow */
-      width: 250px;
-      /* Adjust width as needed */
-      transition: width 0.3s ease;
-    }
-
-    /* Custom styles for nav links */
-    .nav-link-custom {
-      font-size: 1.2rem;
-      /* Slightly larger font */
-      text-transform: uppercase;
-      text-decoration: none;
-      padding-left: 20px;
-      /* Padding for better spacing */
-      letter-spacing: 1px;
-      transition: color 0.3s ease, padding-left 0.3s ease;
-      /* Hover animation */
-    }
-
-    /* Hover effect */
-    .nav-link-custom:hover {
-      color: #ffc107;
-      /* Bootstrap warning color */
-      padding-left: 30px;
-      /* Slight shift to the right on hover */
-      text-decoration: none;
-    }
-
-    /* Optional: Add subtle border or underline effect on hover */
-    .nav-link-custom:hover::after {
-      content: '';
-      display: block;
-      width: 50px;
-      border-bottom: 2px solid #ffc107;
-      margin-top: 5px;
-      transition: width 0.3s ease;
-    }
-
-    /* Active or highlighted state (you can apply this class conditionally in your views) */
-    .nav-link-custom.active {
-      color: #ffc107;
-      font-weight: bold;
-    }
-
-    #mySidenav {
-      position: fixed;
-      top: 50%;
-      left: 0;
-      transform: translateY(-50%);
-    }
-
-    .mainSection{
-      height: 1000px !important;
-    }
-    .sticky-btn {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      z-index: 9999; /* Ensure the button stays on top */
-      border-radius: 100%;
-    }
-
-    body, html { height: 100%; }
-
-  </style>
+  
 
 
 </head>
@@ -158,7 +85,7 @@ Note:
           <a href="#" class="text-white text-xl nav-link-custom">About</a>
         </li>
         <li class="py-3">
-          <a href="#" class="text-white text-xl nav-link-custom">My Events</a>
+          <a href="{%url 'events' %}" class="text-white text-xl nav-link-custom">My Events</a>
         </li>
         <li class="py-3">
           <a href="#" class="text-white text-xl nav-link-custom">Other Events</a>
@@ -184,7 +111,7 @@ Note:
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body text-center">
-            <form id="file-dropzone" class="dropzone"  action="{%url 'addEvents'%}" enctype="multipart/form-data">
+            <form id="file-dropzone" class="dropzone" action="{%url 'addEvents'%}"  enctype="multipart/form-data">
             {% csrf_token %}
             <div class="mb-3">
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>
@@ -346,124 +273,11 @@ Note:
       </div>
     </div>
   </footer>
-  
-  <script>
-    // Sidebar Handling
-    function openNav() {
-        let sidebar = document.getElementById("mySidenav");
-        if (sidebar.classList.contains("open")) {
-            closeNav();
-        } else {
-            sidebar.classList.add("open");
-            sidebar.style.width = "250px";
-            setTimeout(function () {
-                Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-                    element.style.visibility = "visible";
-                });
-            }, 50);
-            Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
-                element.style.filter = "brightness(0.5)";
-            });
-        }
-    }
+  <script> 
+    const myurl ="{%url 'addEvents'%}" ; 
 
-    function closeNav() {
-        let sidebar = document.getElementById("mySidenav");
-        sidebar.classList.remove("open");
-        sidebar.style.width = "0";
-        Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-            element.style.visibility = "hidden";
-        });
-        Array.from(document.getElementsByClassName("mainSection")).forEach(element => {
-            element.style.filter = "brightness(1)";
-        });
-    }
-
-    // Handle main content clicks
-    document.addEventListener("DOMContentLoaded", function () {
-        const mainContent = document.querySelector(".mainSection");
-        if (mainContent) {
-            mainContent.addEventListener("click", closeNav);
-        }
-    });
-
-    // Dropzone JS
-    Dropzone.autoDiscover = false; // Prevent Dropzone from auto initializing
-
-    Dropzone.options.fileDropzone = {
-        url: "{% url 'addEvents' %}", 
-        maxFilesize: 20,
-        acceptedFiles: '.jpeg,.jpg,.png',
-        autoProcessQueue: false,
-        uploadMultiple: true,
-        parallelUploads: 10,
-        addRemoveLinks: true,
-        dictDefaultMessage: "Drag & drop images here to upload",
-        init: function () {
-            var myDropzone = this;
-            let isSubmitted = false;
-
-            // Event listener for the form submission
-            document.querySelector("#eventForm").addEventListener("submit", function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-
-                if (!isSubmitted) {
-                    isSubmitted = true;
-                    document.querySelector("button[type=submit]").disabled = true;  // Disable the submit button
-
-                    // First, create the event by submitting the form using Ajax
-                    let formData = new FormData(e.target);
-                    fetch('{% url 'addEvents' %}', {
-                        method: 'POST',
-                        body: formData
-                    })
-                    .then(response => {
-                        if (response.ok) {
-                            // If event creation is successful, process the Dropzone queue
-                            myDropzone.processQueue();
-                        } else {
-                            throw new Error('Failed to create event');
-                        }
-                    })
-                    .catch(error => {
-                        console.log('Event creation failed:', error);
-                        isSubmitted = false;
-                        
-                    });
-                }
-            });
-
-            // Reset after the queue is processed
-            myDropzone.on("queuecomplete", function () {
-                isSubmitted = false;
-                
-            });
-
-            // Handle errors during upload
-            myDropzone.on("error", function (file, response) {
-                console.log('File upload failed:', response);
-                isSubmitted = false;
-                
-            });
-        },
-        sending: function (file, xhr, formData) {
-            formData.append("file", file);
-        }
-    };
-
-    // Load sidebar in closed state
-    function onLoadNav() {
-        let sidebar = document.getElementById("mySidenav");
-        if (sidebar) {
-            sidebar.style.width = "0";
-            Array.from(document.getElementsByClassName("invisible-items")).forEach(element => {
-                element.style.visibility = "hidden";
-            });
-        }
-    }
-    window.addEventListener("load", onLoadNav);
-</script>
+  </script>
+  <script src="{% static 'layout.js' %}"></script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
     integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"

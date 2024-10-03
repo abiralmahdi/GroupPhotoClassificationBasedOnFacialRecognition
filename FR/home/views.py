@@ -21,6 +21,11 @@ def myEvents(request):
     else:
         return redirect("/")
 
+from django.shortcuts import redirect
+from django.contrib import messages
+from django.db import transaction
+from .models import Event, PicsRelation  # Import your models
+
 def addEvents(request):
     if request.method == "POST":
         try:
@@ -41,7 +46,7 @@ def addEvents(request):
                 event.guest.set(guests)
 
                 # Handle the uploaded pictures
-                eventPics = request.FILES.getlist('file')  # Change the key to 'file' to match Dropzone
+                eventPics = request.FILES.getlist('files[]')  # Change the key to 'files[]' to match Dropzone
 
                 # Save multiple event pictures in the PicsRelation model
                 for file in eventPics:

@@ -2,14 +2,7 @@ from django.db import models
 from django.conf import settings
 
 
-# Picture model where each picture is uploaded by a user (ForeignKey to User)
-class Picture(models.Model):
-    uploader = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)  # ForeignKey to User
-    image = models.ImageField(upload_to='images/')
-    image_id = models.AutoField(primary_key=True)
 
-    def __str__(self):
-        return f"Image {self.image_id} uploaded by {self.uploader.username}"
 
 
 class Event(models.Model):

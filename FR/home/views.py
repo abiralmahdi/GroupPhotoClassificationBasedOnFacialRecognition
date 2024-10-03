@@ -40,8 +40,8 @@ def addEvents(request):
 
         # Save multiple event pictures in the PicsRelation model
         for file in eventPics:
-            pics = PicsRelation.objects.create(event=event, image=file)
-            pics.save()
+            PicsRelation.objects.create(event=event, image=file)
+            print(f"Picture saved for event: {event.name}")
 
         return redirect("/myEvents")
     

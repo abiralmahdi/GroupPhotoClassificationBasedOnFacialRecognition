@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'accounts',
     'home',
-    'API',
 ]
 
 MIDDLEWARE = [

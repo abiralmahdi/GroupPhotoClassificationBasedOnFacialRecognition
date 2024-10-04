@@ -17,14 +17,14 @@ def myEvents(request):
     if request.user.is_authenticated:
         users = User.objects.all()  # Removed the instantiation
         events = Event.objects.filter(host=request.user)
-        return render(request, 'events.html', {'events': events, 'users': users})
+        arrPics = []
+        for event in events:
+            arrPics.append(PicsRelation.objects.filter(event=event)[0])
+        return render(request, 'events.html', {'events': events, 'users': users, 'pics':arrPics})
     else:
         return redirect("/")
 
-from django.shortcuts import redirect
-from django.contrib import messages
-from django.db import transaction
-from .models import Event, PicsRelation  # Import your models
+
 
 def addEvents(request):
     if request.method == "POST":

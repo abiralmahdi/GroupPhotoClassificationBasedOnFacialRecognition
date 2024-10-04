@@ -19,7 +19,10 @@ def myEvents(request):
         events = Event.objects.filter(host=request.user)
         arrPics = []
         for event in events:
-            arrPics.append(PicsRelation.objects.filter(event=event)[0])
+            try:
+                arrPics.append(PicsRelation.objects.filter(event=event)[0])
+            except:
+                pass
         return render(request, 'events.html', {'events': events, 'users': users, 'pics':arrPics})
     else:
         return redirect("/")

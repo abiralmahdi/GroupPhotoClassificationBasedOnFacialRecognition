@@ -20,6 +20,7 @@ class Event(models.Model):
 class PicsRelation(models.Model):
     event = models.ForeignKey(Event, related_name='pictures', default="", on_delete=models.CASCADE)  # Link multiple images to one event
     image = models.ImageField(upload_to='images/eventPictures', default="")
+    date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return f"Image for {self.event.name}"

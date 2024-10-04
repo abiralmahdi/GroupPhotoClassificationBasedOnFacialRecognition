@@ -46,3 +46,20 @@ def addEvents(request):
         return redirect("/myEvents")
     
     return redirect("/")
+
+def addPhotos(request, eventID):
+    if request.method == "POST":
+        event = Event.objects.get(id=eventID)
+        eventPics = request.FILES.getlist('file')  # Change the key to 'file' to match Dropzone
+       # Save multiple event pictures in the PicsRelation model
+        for file in eventPics:
+            PicsRelation.objects.create(event=event, image=file)
+            print(f"Picture saved for event: {event.name}")
+
+    return redirect("/myEvents/"+eventID)
+
+
+def eventPage(request, eventID):
+    event = Event.objects.get(id=eventID)
+    pictures = PicsRelation.objects.filter(event=event)
+    return render(request, 'eventPage.html',{'event':event, 'photos':pictures})

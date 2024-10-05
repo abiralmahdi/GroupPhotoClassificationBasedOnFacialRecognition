@@ -39,9 +39,10 @@ def register(request):
         password=data.get('password')
         rpassword=data.get('cpassword')
         contact = data.get('contact')
+        image = request.FILES.get('image')
 
         if checkvalidity(request,password,rpassword,Email):
-            user = User.objects.create(username=Email, email=Email, first_name=Firstname, last_name=Lastname, password=make_password(password))
+            user = User.objects.create(username=Email, email=Email, first_name=Firstname, last_name=Lastname, password=make_password(password), profilepicture=image)
             user.contact = contact
             user.pwd = password
             user.save()

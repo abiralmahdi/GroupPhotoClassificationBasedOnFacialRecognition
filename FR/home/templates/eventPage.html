@@ -2,7 +2,8 @@
 {% block body %}
 <section class="text-gray-600 body-font">
     <div class="container px-5 py-24 mx-auto">
-        <h2 class="text-center">{{event.name}}  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button></h2>
+        <h2 class="text-center">{{event.name}} <br>  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button> 
+          <br> <a href="/triggerRecognition/{{event.id}}" class="btn btn-dark">Find the Photos where I am present</a></h2>
       <div class="flex flex-wrap -m-4">
         {% for photo in photos %}
         <div class="lg:w-1/4 md:w-1/2 p-4 w-full">

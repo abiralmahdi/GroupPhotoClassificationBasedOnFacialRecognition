@@ -2,9 +2,6 @@ from django.db import models
 from django.conf import settings
 
 
-
-
-
 class Event(models.Model):
     name = models.CharField(max_length=1000, default="")
     description = models.CharField(max_length=1000, default="")
@@ -24,3 +21,13 @@ class PicsRelation(models.Model):
 
     def __str__(self):
         return f"Image for {self.event.name}"
+    
+
+
+
+class userPicsRelation(models.Model):
+    image = models.ForeignKey(PicsRelation, on_delete=models.CASCADE)
+    user = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guest_pics')
+
+    def __str__(self):
+        return f"Image for {self.user}"

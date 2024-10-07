@@ -10,12 +10,10 @@ arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
 
 def recognize(users, groupImgs):
     for user in users:
-        print("User-"+str(user))
         for groupImg in groupImgs:
-            print(groupImg)
-            print(cropOut(str(groupImg), user))
+            return cropOut(str(groupImg), user)
 
-def recognition(imgArr, userImg):
+def recognition(image_path, imgArr, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
     known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image
     
@@ -32,7 +30,7 @@ def recognition(imgArr, userImg):
         results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
         
         if results[0]:
-            return True
+            return image_path
     return False
 
 
@@ -56,7 +54,7 @@ def cropOut(image_path, userImg):
         face = image[y:y + h, x:x + w]  # slice/crop the face
         imgArray.append(face)  # store the cropped image in an array
 
-    return recognition(imgArray, userImg)
+    return recognition(image_path, imgArray, userImg)
 
 
 

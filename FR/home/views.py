@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from .models import Event, PicsRelation
+from .models import Event, PicsRelation, userPicsRelation
 from django.db import transaction
 from django.contrib import messages
 from .FacialRecognition import recognize
@@ -79,12 +79,20 @@ def checkSimilarImages(user, event):
     for pic in pics:
         image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
         picsArr.append(image_path)
-    recognize([profilePic], picsArr)
+    
+    result = recognize([profilePic], picsArr)
+    if result != False:
+        imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
+        relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
+    
+        print(relevantPic.event)
+    
+        userPics = userPicsRelation(image=relevantPic)
+        userPics.save()
+        userPics.user.add(user)
 
-def triggerRecognition(request, event):
-    thread = threading.Thread(target=checkSimilarImages, args=(request.user, event))
-    thread.start()
-    return redirect("/myEvents")
+    
+
 
 def addPhotos(request, eventID):
     if request.method == "POST":
@@ -94,14 +102,56 @@ def addPhotos(request, eventID):
         for file in eventPics:
             PicsRelation.objects.create(event=event, image=file)
             print(f"Picture saved for event: {event.name}")
-    
-
     return redirect("/myEvents/"+eventID)
 
 
 def eventPage(request, eventID):
     event = Event.objects.get(id=eventID)
     pictures = PicsRelation.objects.filter(event=event)
+    thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
+    thread.start()
     return render(request, 'eventPage.html',{'event':event, 'photos':pictures})
 
 
+def myPhotos(request):
+    if request.user.is_authenticated:
+        picsUser = userPicsRelation.objects.filter(user=request.user)
+        events = Event.objects.filter(guest=request.user)
+        picsEvent = PicsRelation.objects.filter(event__in=events)
+
+        
+
+        # for event in events:
+        #     mydict = {f"{event.name}": []}  # Initialize a dictionary for each event
+
+        #     for pic in pics:
+        #         try:
+        #             # Filter PicsRelation based on event and picture's image
+        #             p = PicsRelation.objects.get(event=event, image=pic.image)
+        #             mydict[f"{event.name}"].append(p)  # Append pic object to the event's list
+        #         except PicsRelation.DoesNotExist:
+        #             continue  # If no matching picture found, continue to the next iteration
+            
+        #     myArr.append(mydict)  # Append the dictionary to myArr
+
+        # return render(request, 'myPhotos.html', {
+        #     'users_': request.user, 
+        #     'pics': pics, 
+        #     'events': events, 
+        #     'picsEvent': picsEvent, 
+        #     'myArr': myArr  # Pass the constructed array to the template
+        # })
+
+        myBigArr = []
+        for event in events:
+            myArr = []
+            for picUser in picsUser:
+                pic = PicsRelation.objects.filter(event=event)
+                if picUser.image in pic:
+                    myArr.append(picUser)
+            myBigArr.append([event, myArr])
+        print(myBigArr)
+        return render(request, 'myPhotos.html', {'myBigArr':myBigArr})
+
+    else:
+        return redirect("/")

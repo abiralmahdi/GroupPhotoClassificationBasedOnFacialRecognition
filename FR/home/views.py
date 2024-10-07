@@ -79,17 +79,17 @@ def checkSimilarImages(user, event):
     for pic in pics:
         image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
         picsArr.append(image_path)
+    for pic in picsArr:
+        result = recognize(profilePic, pic)
+        if result:
+            imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
+            relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
     
-    result = recognize([profilePic], picsArr)
-    if result != False:
-        imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-        relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
+       
     
-        print(relevantPic.event)
-    
-        userPics = userPicsRelation(image=relevantPic)
-        userPics.save()
-        userPics.user.add(user)
+            userPics = userPicsRelation(image=relevantPic)
+            userPics.save()
+            userPics.user.add(user)
 
     
 

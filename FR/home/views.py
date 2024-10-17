@@ -123,7 +123,11 @@ def checkEventStatus(request, eventID):
     return JsonResponse({"status":event.published})
 
 
-
+def restrictEvent(request, eventID):
+    event = Event.objects.get(id=eventID)
+    event.published = False
+    event.save()
+    return JsonResponse({"status":"success"})
 
 
 

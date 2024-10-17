@@ -8,6 +8,7 @@ from .FacialRecognition import recognize
 import threading
 import os
 from django.conf import settings
+from django.http import JsonResponse
 
 User = get_user_model()  # Correctly get the User model
 
@@ -16,6 +17,7 @@ def index(request):
     users = User.objects.all()  # Removed the instantiation
     return render(request, 'index.html', {'users': users})
 
+@login_required
 def myEvents(request):
     if request.user.is_authenticated:
         users = User.objects.all()  # Removed the instantiation
@@ -38,18 +40,11 @@ def addEvents(request):
             with transaction.atomic():
                 name = request.POST.get('eventName')
                 description = request.POST.get('eventDescription')
-                guest_ids = request.POST.getlist('guests')  # Get guest IDs as a list
                 event_date = request.POST.get('date')
                 host = request.user
 
-                # Fetch the User objects corresponding to the guest IDs
-                guests = User.objects.filter(id__in=guest_ids)
-
                 # Create the Event instance
                 event = Event.objects.create(name=name, description=description, event_date=event_date, host=host)
-
-                # Set the guests for the event
-                event.guest.set(guests)
 
                 # Handle the uploaded pictures
                 eventPics = request.FILES.getlist('files[]')  # Change the key to 'files[]' to match Dropzone
@@ -108,9 +103,38 @@ def addPhotos(request, eventID):
 def eventPage(request, eventID):
     event = Event.objects.get(id=eventID)
     pictures = PicsRelation.objects.filter(event=event)
-    thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
-    thread.start()
+    # thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
+    # thread.start()
     return render(request, 'eventPage.html',{'event':event, 'photos':pictures})
+
+
+def publishEvent(request, eventID):
+    event = Event.objects.get(id=eventID)
+    event.published = True
+    event.save()
+    return JsonResponse({"status":"success"})
+
+def checkEventStatus(request, eventID):
+    event = Event.objects.get(id=eventID)
+    return JsonResponse({"status":event.published})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 def myPhotos(request):

@@ -199,14 +199,7 @@ Note:
               <input type="text" class="form-control" id="eventName" name="eventName" placeholder="Event Name" required>
             </div>
             <div class="mb-3">
-              <input type="text" class="form-control" id="eventDescription" name="eventDescription" placeholder="Event Description" required>
-            </div>
-            <div class="mb-3">
-              <select id="guests" name="guests" class="form-control" multiple>
-                {% for user in users %}
-                  <option value="{{ user.id }}">{{ user.username }}</option>
-                {% endfor %}
-              </select>
+              <textarea type="text" class="form-control" id="eventDescription" name="eventDescription" placeholder="Event Description" required></textarea>
             </div>
             <div class="mb-3">
               <input type="date" class="form-control" id="date" name="date" placeholder="Event Date" required>

@@ -6,9 +6,8 @@ class Event(models.Model):
     name = models.CharField(max_length=1000, default="")
     description = models.CharField(max_length=1000, default="")
     host = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='hosted_events', default="") 
-    guest = models.ManyToManyField(settings.AUTH_USER_MODEL, related_name='guest_events')
     event_date = models.DateField()
-    
+    published = models.BooleanField(default=False)    
     def __str__(self):
         return f"Event {self.name} hosted by {self.host.username}"
 

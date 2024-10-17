@@ -9,6 +9,7 @@ import threading
 import os
 from django.conf import settings
 from django.http import JsonResponse
+import random
 
 User = get_user_model()  # Correctly get the User model
 
@@ -44,7 +45,9 @@ def addEvents(request):
                 host = request.user
 
                 # Create the Event instance
-                event = Event.objects.create(name=name, description=description, event_date=event_date, host=host)
+                code = str(random.randint(100000, 999999))
+                event = Event.objects.create(name=name, description=description, event_date=event_date, host=host, code=code)
+                
 
                 # Handle the uploaded pictures
                 eventPics = request.FILES.getlist('files[]')  # Change the key to 'files[]' to match Dropzone
@@ -103,11 +106,12 @@ def addPhotos(request, eventID):
 def eventPage(request, eventID):
     event = Event.objects.get(id=eventID)
     pictures = PicsRelation.objects.filter(event=event)
-    # thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
-    # thread.start()
     return render(request, 'eventPage.html',{'event':event, 'photos':pictures})
 
 
+def generateLinks(request, eventID):
+    event = Event.objects.get(id=eventID)
+    
 def publishEvent(request, eventID):
     event = Event.objects.get(id=eventID)
     event.published = True

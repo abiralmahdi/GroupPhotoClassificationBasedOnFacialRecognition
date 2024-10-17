@@ -42,7 +42,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'accounts',
     'home',
-    'background_task'
+    'client'
 ]
 
 MIDDLEWARE = [

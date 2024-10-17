@@ -63,17 +63,23 @@
               <input type="text" class="form-control my-2" value="{{event.event_date}}" disabled>
               <textarea class="form-control my-2" disabled style="height: 200px;">{{event.description}}</textarea>
               <hr>
+              <div id="qrcode" style="width: 128px; height: 128px;"></div>
               <div class="flex flex-wrap">
                 <input type="text" class="form-control my-2 mr-1" style="width: 65%;" disabled value="http://127.0.0.1:8000/sharedEvent/{{event.id}}">
                 <input type="text" class="form-control my-2 ml-1" style="width: 30%;" disabled value="{{event.code}}">
               </div>
-
             </form>
           </div>
         </div>
       </div>
     </div>
-  
+ 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+      var qrcode = new QRCode("qrcode",
+        "http://127.0.0.1:8000/sharedEvent/{{event.id}}");
+    </script>
 <script>
   // DropZone JS
     Dropzone.options.fileDropzone = {
@@ -137,8 +143,6 @@
       });
 
     };
-
-
 
 </script>
 

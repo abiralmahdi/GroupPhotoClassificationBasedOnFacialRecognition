@@ -68,7 +68,7 @@
               <div class="flex">
                 <div id="qrcode" style="width: 128px; height: 128px;"></div>
                 <div class="">
-                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >http://127.0.0.1:8000/sharedEvent/{{event.id}}</div>
+                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
                   <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >{{event.code}}</div>
                 </div>
               </div>
@@ -82,7 +82,7 @@
 
     <script>
       var qrcode = new QRCode("qrcode",
-        "http://127.0.0.1:8000/sharedEvent/{{event.id}}");
+        "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}");
     </script>
 <script>
   // DropZone JS

@@ -40,3 +40,7 @@ def checkSimilarImages(user, event):
 def sharedEvent(request, eventID):
     thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
     thread.start()
+    event = Event.objects.get(id=eventID)
+    pictures = PicsRelation.objects.filter(event=event)
+    return render(request, 'clienteventPage.html',{'event':event, 'photos':pictures})
+   

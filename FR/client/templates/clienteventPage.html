@@ -1,0 +1,131 @@
+{% extends 'layout.html' %}
+{% load static %}
+{% block body %}
+<section class="text-gray-600 body-font">
+    <div class="container px-5 py-24 mx-auto">
+        <h2 class="text-center">{{event.name}} 
+          <br>
+          <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add or click your photo</button> 
+        </h2>
+      <div class="flex flex-wrap mt-4">
+        {% for photo in photos %}
+        <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
+          <a class="block relative h-48 rounded overflow-hidden">
+            <img alt="ecommerce" class="object-cover object-center w-full h-full block" src="/media/{{photo.image}}">
+          </a>
+          <div class="mt-4">
+            <h3 class="text-gray-500 text-xs tracking-widest title-font mb-1"></h3>
+            <h2 class="text-gray-900 title-font text-lg font-medium"></h2>
+            <p class="mt-1">Uploaded on: {{photo.date}}</p>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+
+
+
+    <div class="modal fade" id="addPhotosModal" tabindex="-1" aria-labelledby="addPhotosModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addPhotosModalLabel">Add photos to this event</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <form action="{% url 'checksimilarity' eventID=event.id %}" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
+              {% csrf_token %}
+              <div class="dropzone-previews"></div>
+              <button type="submit" class="btn btn-primary m-3">Add</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+
+    <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">''
+            <h5 class="modal-title" id="publishModalLabel">Publish Event</h5>
+            <button class="btn btn-success ml-auto" onclick="publishEvent()" id="publishModalBtn" > Publish</button>
+          </div>
+          <div class="modal-body text-center">
+            <form class="form">
+              <input type="text" class="form-control my-2" value="{{event.name}}" disabled>
+              <input type="text" class="form-control my-2" value="{{event.event_date}}" disabled>
+              <textarea class="form-control my-2" disabled style="height: 200px;">{{event.description}}</textarea>
+              <hr>
+              <div class="flex">
+                <div id="qrcode" style="width: 128px; height: 128px;"></div>
+                <div class="">
+                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
+                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >{{event.code}}</div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+ 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+    <script>
+      var qrcode = new QRCode("qrcode",
+        "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}");
+    </script>
+<script>
+    Dropzone.options.fileDropzone = {
+    maxFilesize: 20, // Set the maximum file size to 20MB
+    acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+    autoProcessQueue: false, // Don't auto process the queue
+    uploadMultiple: true, // Allow multiple files
+    parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
+    addRemoveLinks: true,
+    dictDefaultMessage: "Drag & drop images here to upload or take a photo",
+    init: function() {
+        var myDropzone = this;
+        
+        // When the form is submitted, manually process the Dropzone queue
+        document.querySelector("form").addEventListener("submit", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            myDropzone.processQueue();
+        });
+
+        // Select the file input and add the capture attribute to allow camera input
+        myDropzone.on("addedfile", function(file) {
+            // Adding the capture attribute to allow camera use (especially on mobile)
+            var input = document.querySelector("input[type='file']");
+            input.setAttribute("capture", "camera");
+        });
+        
+        // On successful upload
+        myDropzone.on("success", function(file, response) {
+            console.log('File uploaded successfully');
+        });
+
+        // On error
+        myDropzone.on("error", function(file, response) {
+            console.log('File upload failed');
+        });
+    },
+    // Set the name attribute for the file input
+    renameFile: function(file) {
+        return file.name; // Return the original name of the file
+    },
+    // Set the parameters for the request
+    sending: function(file, xhr, formData) {
+        formData.append("file", file); // Append the file to the form data
+    }
+};
+
+</script>
+
+  </section>
+
+{% endblock %}

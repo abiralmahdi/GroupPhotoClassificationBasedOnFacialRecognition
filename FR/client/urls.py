@@ -1,7 +1,8 @@
 from django.urls import path
-from . import views
+from .views import *
 
 urlpatterns = [
-    path('sharedEvent/<str:eventID>', views.sharedEvent, name='events'),
-    path('sharedEvent/<str:eventID>', views.sharedEvent, name='events'),
+    path('sharedEvent/<int:eventID>', sharedEvent, name='sharedEvent'),
+    path('checksimilarity/<int:eventID>', checkSimilarImages, name='checksimilarity'),
+    
 ]

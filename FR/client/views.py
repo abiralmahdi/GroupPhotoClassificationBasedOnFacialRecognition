@@ -14,26 +14,42 @@ from django.http import JsonResponse
 
 
 
-def checkSimilarImages(user, event):
-    event_ = Event.objects.get(id=event)
+def checkSimilarImages(request, eventID):
+    event_ = Event.objects.get(id=eventID)
     pics = PicsRelation.objects.filter(event=event_)
-    profilePic = user.profilepicture
-    picsArr = []
     
-    for pic in pics:
-        image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        picsArr.append(image_path)
-    for pic in picsArr:
-        result = recognize(profilePic, pic)
-        if result:
-            imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-            relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
+    if request.method == "POST":
+        # Get list of uploaded files
+        uploaded_files = request.FILES.getlist('file')
+        picsArr = []
+
+        # Get paths for existing event pictures
+        for pic in pics:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+            picsArr.append(image_path)
+
+        matched_pics = []  # To store userPicsRelation objects for matched images
+
+        # Compare each uploaded file against existing pictures
+        for profilePic in uploaded_files:
+            for pic in picsArr:
+                # Assuming recognize is a function that returns the path of the recognized image or None
+                result = recognize(profilePic, pic)
+                if result:
+                    imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
+                    relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
+
+                    # Save the matching picture to userPicsRelation
+                    userPic = userPicsRelation(image=relevantPic)
+                    userPic.save()
+                    
+                    # Collect the userPic object to send to the template
+                    matched_pics.append(userPic)
+
+        # Render the template with matched pictures
+        return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics})
     
-       
-    
-            userPics = userPicsRelation(image=relevantPic)
-            userPics.save()
-            userPics.user.add(user)
+    return render(request, "clientImages.html", {'event': event_})
 
 
 

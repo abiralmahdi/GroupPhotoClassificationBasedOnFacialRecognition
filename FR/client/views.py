@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect ,HttpResponse
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from home.models import Event, PicsRelation, userPicsRelation
@@ -41,6 +41,8 @@ def sharedEvent(request, eventID):
     thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
     thread.start()
     event = Event.objects.get(id=eventID)
+    if not event.published:
+        return HttpResponse("<h1>Restricted access</h1>")
     pictures = PicsRelation.objects.filter(event=event)
     return render(request, 'clienteventPage.html',{'event':event, 'photos':pictures})
    

@@ -1,7 +1,26 @@
 {% extends 'layout.html' %}
 {% load static %}
 {% block body %}
-<section class="text-gray-600 body-font">
+
+<!-- Modal for entering code -->
+<div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="codeModalLabel">Enter Access Code</h5>
+      </div>
+      <div class="modal-body">
+        <form id="codeForm">
+          <input type="text" class="form-control my-2" id="accessCodeInput" placeholder="Enter code" required>
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Main content section that is hidden initially -->
+<section class="text-gray-600 body-font" id="main-content" style="display:none;">
     <div class="container px-5 py-24 mx-auto">
         <h2 class="text-center">{{event.name}} 
           <br>
@@ -14,8 +33,6 @@
             <img alt="ecommerce" class="object-cover object-center w-full h-full block" src="/media/{{photo.image}}">
           </a>
           <div class="mt-4">
-            <h3 class="text-gray-500 text-xs tracking-widest title-font mb-1"></h3>
-            <h2 class="text-gray-900 title-font text-lg font-medium"></h2>
             <p class="mt-1">Uploaded on: {{photo.date}}</p>
           </div>
         </div>
@@ -23,8 +40,7 @@
       </div>
     </div>
 
-
-
+    <!-- Add Photos Modal -->
     <div class="modal fade" id="addPhotosModal" tabindex="-1" aria-labelledby="addPhotosModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
@@ -43,15 +59,13 @@
       </div>
     </div>
 
-
-
-
+    <!-- Publish Modal -->
     <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">
-          <div class="modal-header">''
+          <div class="modal-header">
             <h5 class="modal-title" id="publishModalLabel">Publish Event</h5>
-            <button class="btn btn-success ml-auto" onclick="publishEvent()" id="publishModalBtn" > Publish</button>
+            <button class="btn btn-success ml-auto" onclick="publishEvent()" id="publishModalBtn">Publish</button>
           </div>
           <div class="modal-body text-center">
             <form class="form">
@@ -62,8 +76,8 @@
               <div class="flex">
                 <div id="qrcode" style="width: 128px; height: 128px;"></div>
                 <div class="">
-                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
-                  <div type="text" class="form-control ml-3 my-2 " style="width: 100%;" >{{event.code}}</div>
+                  <div class="form-control ml-3 my-2" style="width: 100%;">http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
+                  <div class="form-control ml-3 my-2" style="width: 100%;">{{event.code}}</div>
                 </div>
               </div>
             </form>
@@ -71,61 +85,79 @@
         </div>
       </div>
     </div>
- 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</section>
 
-    <script>
-      var qrcode = new QRCode("qrcode",
-        "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}");
-    </script>
+<!-- Dropzone Script -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
 <script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Show the code modal when the page loads
+    var codeModal = new bootstrap.Modal(document.getElementById('codeModal'));
+    codeModal.show();
+
+    // Form submission handler for checking the access code
+    document.getElementById('codeForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        var enteredCode = document.getElementById('accessCodeInput').value;
+
+        // Replace with your actual event code
+        var actualCode = "{{ event.code }}";
+
+        if (enteredCode === actualCode) {
+            // If the code matches, hide the modal and show the main content
+            codeModal.hide();
+            document.getElementById('main-content').style.display = 'block';
+        } else {
+            // If the code doesn't match, show an error
+            alert('Incorrect code. Please try again.');
+        }
+    });
+
+    // Initialize QR Code
+    var qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}",
+        width: 128,
+        height: 128,
+    });
+
+    // Dropzone configuration
     Dropzone.options.fileDropzone = {
-    maxFilesize: 20, // Set the maximum file size to 20MB
-    acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
-    autoProcessQueue: false, // Don't auto process the queue
-    uploadMultiple: true, // Allow multiple files
-    parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
-    addRemoveLinks: true,
-    dictDefaultMessage: "Drag & drop images here to upload or take a photo",
-    init: function() {
-        var myDropzone = this;
-        
-        // When the form is submitted, manually process the Dropzone queue
-        document.querySelector("form").addEventListener("submit", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            myDropzone.processQueue();
-        });
+        maxFilesize: 20, // Set the maximum file size to 20MB
+        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+        autoProcessQueue: false, // Don't auto process the queue
+        uploadMultiple: true, // Allow multiple files
+        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
+        addRemoveLinks: true,
+        dictDefaultMessage: "Drag & drop images here to upload or take a photo",
+        init: function() {
+            var myDropzone = this;
 
-        // Select the file input and add the capture attribute to allow camera input
-        myDropzone.on("addedfile", function(file) {
-            // Adding the capture attribute to allow camera use (especially on mobile)
-            var input = document.querySelector("input[type='file']");
-            input.setAttribute("capture", "camera");
-        });
-        
-        // On successful upload
-        myDropzone.on("success", function(file, response) {
-            console.log('File uploaded successfully');
-        });
+            // When the form is submitted, manually process the Dropzone queue
+            document.querySelector("form").addEventListener("submit", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                myDropzone.processQueue();
+            });
 
-        // On error
-        myDropzone.on("error", function(file, response) {
-            console.log('File upload failed');
-        });
-    },
-    // Set the name attribute for the file input
-    renameFile: function(file) {
-        return file.name; // Return the original name of the file
-    },
-    // Set the parameters for the request
-    sending: function(file, xhr, formData) {
-        formData.append("file", file); // Append the file to the form data
-    }
-};
+            // On successful upload
+            myDropzone.on("success", function(file, response) {
+                console.log('File uploaded successfully');
+            });
 
+            // On error
+            myDropzone.on("error", function(file, response) {
+                console.log('File upload failed');
+            });
+        },
+        renameFile: function(file) {
+            return file.name; // Return the original name of the file
+        },
+        sending: function(file, xhr, formData) {
+            formData.append("file", file); // Append the file to the form data
+        }
+    };
+});
 </script>
-
-  </section>
 
 {% endblock %}

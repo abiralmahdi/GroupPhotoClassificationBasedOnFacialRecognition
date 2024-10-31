@@ -45,13 +45,13 @@
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="addPhotosModalLabel">Add photos to this event</h5>
+            <h5 class="modal-title" id="addPhotosModalLabel">Upload your photo</h5>
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body text-center">
-            <form action="{% url 'checksimilarity' eventID=event.id %}" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
+            <form action="/client/checksimilarity/{{event.id}}" method="POST" enctype="multipart/form-data">
               {% csrf_token %}
-              <div class="dropzone-previews"></div>
+              <input type="file" class="form-control" name="photo">
               <button type="submit" class="btn btn-primary m-3">Add</button>
             </form>
           </div>
@@ -121,42 +121,7 @@ document.addEventListener("DOMContentLoaded", function() {
         height: 128,
     });
 
-    // Dropzone configuration
-    Dropzone.options.fileDropzone = {
-        maxFilesize: 20, // Set the maximum file size to 20MB
-        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
-        autoProcessQueue: false, // Don't auto process the queue
-        uploadMultiple: true, // Allow multiple files
-        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
-        addRemoveLinks: true,
-        dictDefaultMessage: "Drag & drop images here to upload or take a photo",
-        init: function() {
-            var myDropzone = this;
-
-            // When the form is submitted, manually process the Dropzone queue
-            document.querySelector("form").addEventListener("submit", function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                myDropzone.processQueue();
-            });
-
-            // On successful upload
-            myDropzone.on("success", function(file, response) {
-                console.log('File uploaded successfully');
-            });
-
-            // On error
-            myDropzone.on("error", function(file, response) {
-                console.log('File upload failed');
-            });
-        },
-        renameFile: function(file) {
-            return file.name; // Return the original name of the file
-        },
-        sending: function(file, xhr, formData) {
-            formData.append("file", file); // Append the file to the form data
-        }
-    };
+    
 });
 </script>
 

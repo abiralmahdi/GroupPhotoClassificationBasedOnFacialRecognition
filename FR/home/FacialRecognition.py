@@ -1,25 +1,36 @@
 import cv2
 import face_recognition # pretrained model for facial features recognition
+
 # Load the pre-trained Haar Cascade classifier for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Arrays which contain some random group images and some random user's images
-arrUsers = ["abir.jpg","rdj.jpg", "rdj2.jpg", "biden.jpg"]
-arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
+arrUsers = ["images/abir.jpg","images/rdj.jpg", "images/rdj2.jpg", "images/biden.jpg"]
+arrGroupImgs = ["images/group.webp", "images/rdj4.jpg", "images/rdj3.jpg","images/abirGroup.jpg"]
 
+def testIndividual(user, groupImgs):
+    arr = []
+    for groupImg in groupImgs:
+        print(cropOut(groupImg, user))
+        arr.append(cropOut(groupImg, user))
+    return arr
 
-def recognize(users, groupImgs):
+def test(users, groupImgs):
     for user in users:
+        print("User-"+user)
         for groupImg in groupImgs:
-            return cropOut(str(groupImg), user)
+            print(cropOut(groupImg, user))
 
-def recognition(image_path, imgArr, userImg):
+def recognition(imgArr, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
     known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image
     
     # This will loop over all the cropped faces in a group photo, and match the cropped faces with the 
     # user's image. If a match is found, it will return True, else False.
     for img in imgArr:
+        cv2.imshow("Image", img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
         rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
         try:
             unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
@@ -30,7 +41,7 @@ def recognition(image_path, imgArr, userImg):
         results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
         
         if results[0]:
-            return image_path
+            return True
     return False
 
 
@@ -48,13 +59,16 @@ def cropOut(image_path, userImg):
     # Draw rectangles around each of the faces
     for (x, y, w, h) in faces:
         cv2.rectangle(image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+    cv2.imshow("Image", image)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
+
 
     # Crop out the faces from the actual image
     for i, (x, y, w, h) in enumerate(faces):
         face = image[y:y + h, x:x + w]  # slice/crop the face
         imgArray.append(face)  # store the cropped image in an array
+    return recognition(imgArray, userImg)
 
-    return recognition(image_path, imgArray, userImg)
-
-
-
+# Testing the other two functions by using the test function
+print(testIndividual("images/abir.jpg", arrGroupImgs))

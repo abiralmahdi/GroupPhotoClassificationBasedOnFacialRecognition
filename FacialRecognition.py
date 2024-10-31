@@ -5,9 +5,12 @@ import face_recognition # pretrained model for facial features recognition
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
 # Arrays which contain some random group images and some random user's images
-arrUsers = ["abir.jpg","rdj.jpg", "rdj2.jpg", "biden.jpg"]
-arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
+arrUsers = ["images/abir.jpg","images/rdj.jpg", "images/rdj2.jpg", "images/biden.jpg"]
+arrGroupImgs = ["images/group.webp", "images/rdj4.jpg", "images/rdj3.jpg","images/abirGroup.jpg"]
 
+def testIndividual(user, groupImgs):
+    for groupImg in groupImgs:
+        print(cropOut(groupImg, user))
 
 def test(users, groupImgs):
     for user in users:
@@ -59,5 +62,5 @@ def cropOut(image_path, userImg):
     return recognition(imgArray, userImg)
 
 # Testing the other two functions by using the test function
-print(test(arrUsers, arrGroupImgs))
+print(testIndividual("images/abir.jpg", arrGroupImgs))
 

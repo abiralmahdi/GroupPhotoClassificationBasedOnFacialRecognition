@@ -4,7 +4,6 @@ from django.contrib.auth import get_user_model
 from .models import Event, PicsRelation, userPicsRelation
 from django.db import transaction
 from django.contrib import messages
-from .FacialRecognition import recognize
 import threading
 import os
 from django.conf import settings
@@ -68,28 +67,6 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(user, event):
-    event_ = Event.objects.get(id=event)
-    pics = PicsRelation.objects.filter(event=event_)
-    profilePic = user.profilepicture
-    picsArr = []
-    
-    for pic in pics:
-        image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        picsArr.append(image_path)
-    for pic in picsArr:
-        result = recognize(profilePic, pic)
-        if result:
-            imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-            relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
-    
-       
-    
-            userPics = userPicsRelation(image=relevantPic)
-            userPics.save()
-            userPics.user.add(user)
-
-    
 
 
 def addPhotos(request, eventID):

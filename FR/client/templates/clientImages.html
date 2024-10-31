@@ -26,26 +26,6 @@
 
 
 
-    <div class="modal fade" id="addPhotosModal" tabindex="-1" aria-labelledby="addPhotosModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addPhotosModalLabel">Add photos to this event</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body text-center">
-            <form action="/addPhotos/{{event.id}}" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
-              {% csrf_token %}
-              <div class="dropzone-previews"></div>
-              <button type="submit" class="btn btn-primary m-3">Add</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
 
     <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
       <div class="modal-dialog">

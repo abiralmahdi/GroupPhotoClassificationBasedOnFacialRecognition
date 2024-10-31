@@ -4,53 +4,32 @@ from django.contrib.auth import get_user_model
 from home.models import Event, PicsRelation, userPicsRelation
 from django.db import transaction
 from django.contrib import messages
-from home.FacialRecognition import recognize
+from home.FacialRecognition import testIndividual
 import threading
 import os
 from django.conf import settings
 from django.http import JsonResponse
 
 # Create your views here.
-
-
-
 def checkSimilarImages(request, eventID):
     event_ = Event.objects.get(id=eventID)
     pics = PicsRelation.objects.filter(event=event_)
-    
+    matchedPics = []
     if request.method == "POST":
         # Get list of uploaded files
-        uploaded_files = request.FILES.getlist('file')
-        picsArr = []
-
+        dp = request.FILES.get('photo')
+        arrayOfGroupImages = []
         # Get paths for existing event pictures
         for pic in pics:
             image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-            picsArr.append(image_path)
-
-        matched_pics = []  # To store userPicsRelation objects for matched images
-
-        # Compare each uploaded file against existing pictures
-        for profilePic in uploaded_files:
-            for pic in picsArr:
-                # Assuming recognize is a function that returns the path of the recognized image or None
-                result = recognize(profilePic, pic)
-                if result:
-                    imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-                    relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
-
-                    # Save the matching picture to userPicsRelation
-                    userPic = userPicsRelation(image=relevantPic)
-                    userPic.save()
-                    
-                    # Collect the userPic object to send to the template
-                    matched_pics.append(userPic)
-
+            arrayOfGroupImages.append(image_path)
+            # Assuming recognize is a function that returns the path of the recognized image or None
+        result = testIndividual(dp, arrayOfGroupImages)
+        for i in result:
+            print(i)
         # Render the template with matched pictures
-        return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics})
-    
+        return render(request, "clientImages.html", {'event': event_, 'photos': matchedPics})
     return render(request, "clientImages.html", {'event': event_})
-
 
 
 def sharedEvent(request, eventID):

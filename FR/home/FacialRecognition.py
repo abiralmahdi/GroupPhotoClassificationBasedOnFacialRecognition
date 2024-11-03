@@ -17,9 +17,10 @@ def testIndividual(user, groupImgs):
 
 def test(users, groupImgs):
     for user in users:
-        print("User-"+user)
+        print("User-"+str(user))
         for groupImg in groupImgs:
-            print(cropOut(groupImg, user))
+            print(groupImg)
+            print(cropOut(str(groupImg), user))
 
 def recognition(imgArr, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
@@ -70,5 +71,6 @@ def cropOut(image_path, userImg):
         imgArray.append(face)  # store the cropped image in an array
     return recognition(imgArray, userImg)
 
-# Testing the other two functions by using the test function
-print(testIndividual("images/abir.jpg", arrGroupImgs))
+
+
+

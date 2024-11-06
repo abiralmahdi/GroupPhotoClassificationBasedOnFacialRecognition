@@ -9,6 +9,8 @@ import threading
 import os
 from django.conf import settings
 from django.http import JsonResponse
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
 
 # Create your views here.
 
@@ -17,49 +19,42 @@ from django.http import JsonResponse
 def checkSimilarImages(request, eventID):
     event_ = Event.objects.get(id=eventID)
     pics = PicsRelation.objects.filter(event=event_)
-
+    
     if request.method == "POST":
-        # Get the uploaded file (only one file expected)
-        profilePic = request.FILES.get('file')  # Fetch the single file
-        print(profilePic)
-        
-        if not profilePic:
-            return render(request, "clientImages.html", {'event': event_, 'photos': [], 'error': "No file uploaded"})
-
-        picsArr = []
-
-        # Get paths for existing event pictures
-        for pic in pics:
-            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-            picsArr.append(image_path)
-
+        # Get list of uploaded files
+        uploaded_files = request.FILES.getlist('file')
         matched_pics = []  # To store userPicsRelation objects for matched images
-
-        # Compare the uploaded file against existing pictures
-        for pic in picsArr:
-            # Assuming recognize is a function that returns the path of the recognized image or None
-            result = recognize(profilePic, pic)
+        
+        # Loop through each uploaded file
+        for profilePic in uploaded_files:
+            file_name = default_storage.save(f'temp/{profilePic.name}', ContentFile(profilePic.read()))
+            profile_pic_path = os.path.join(settings.MEDIA_ROOT, file_name)
             
-            if result:  # If a match is found
-                imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-                relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
+            # Loop through each picture from the event
+            for pic in pics:
+                image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+                
+                # Assuming 'recognize' function compares the images and returns a path if matched
+                print(f"user: {profile_pic_path} \n froupimage {image_path}")
+                result = recognize(profile_pic_path ,image_path)
+                if result:
+                    imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
+                    relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
 
-                # Save the matching picture to userPicsRelation
-                userPic = userPicsRelation(image=relevantPic)
-                userPic.save()
+                    # Create or get userPicsRelation object
+                    userPics, created = userPicsRelation.objects.get_or_create(image=relevantPic)
 
-                # Collect the userPic object to send to the template
-                matched_pics.append(userPic)
+                    # Add the user to the userPicsRelation object (if not already added)
+                    userPics.user.add(request.user)
 
-        if not matched_pics:
-            error_message = "No matching images found"
-            return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics, 'error': error_message})
+                    # Collect the userPics object to send to the template
+                    matched_pics.append(userPics)
 
         # Render the template with matched pictures
         return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics})
-
-    # If it's not a POST request, render the template with no photos
+    
     return render(request, "clientImages.html", {'event': event_})
+
 
 
 

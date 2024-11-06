@@ -3,15 +3,12 @@ import face_recognition # pretrained model for facial features recognition
 # Load the pre-trained Haar Cascade classifier for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
 
-# Arrays which contain some random group images and some random user's images
-arrUsers = ["abir.jpg","rdj.jpg", "rdj2.jpg", "biden.jpg"]
-arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
-
 
 def recognize(users, groupImgs):
     for user in users:
         for groupImg in groupImgs:
-            return cropOut(str(groupImg), user)
+            print(f"user: {user} \n froupimage {groupImg}")
+            return cropOut(groupImg, user)
 
 def recognition(image_path, imgArr, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user

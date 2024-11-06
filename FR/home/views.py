@@ -77,7 +77,7 @@ def checkSimilarImages(request, user, event):
     
     for pic in pics:
         image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        result = recognition(image_path, profilePic)
+        result = recognize( profilePic,image_path)
         if result:
             relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\','/'))
             userPics = userPicsRelation.objects.get_or_create(image=relevantPic)

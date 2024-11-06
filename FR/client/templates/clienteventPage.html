@@ -49,11 +49,12 @@
             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
           </div>
           <div class="modal-body text-center">
-            <form action="{% url 'checksimilarity' eventID=event.id %}" class="dropzone" method="POST" id="file-dropzone" enctype="multipart/form-data">
+            <form action="{% url 'checksimilarity' eventID=event.id %}" method="POST" class="dropzone" id="file-dropzone" enctype="multipart/form-data">
               {% csrf_token %}
               <div class="dropzone-previews"></div>
               <button type="submit" class="btn btn-primary m-3">Add</button>
-            </form>
+          </form>
+          
           </div>
         </div>
       </div>
@@ -121,22 +122,22 @@ document.addEventListener("DOMContentLoaded", function() {
         height: 128,
     });
 
- // Dropzone configuration
 // Dropzone configuration
 Dropzone.options.fileDropzone = {
   maxFiles: 1, // Allow only 1 file to be uploaded
   maxFilesize: 1, // Set the maximum file size to 1MB (adjust as needed)
-  acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+  acceptedFiles: '', // Accept all file types (set to an empty string)
   autoProcessQueue: false, // Don't auto process the queue
   uploadMultiple: false, // Disable multiple file uploads
   parallelUploads: 1, // Upload only 1 file at a time
   addRemoveLinks: true, // Allow removing files
   dictDefaultMessage: "Drag & drop an image here to upload or take a photo",
+
   init: function() {
       var myDropzone = this;
 
       // When the form is submitted, manually process the Dropzone queue
-      document.querySelector("form").addEventListener("submit", function(e) {
+      document.querySelector("#file-dropzone").addEventListener("submit", function(e) {
           e.preventDefault();
           e.stopPropagation();
           myDropzone.processQueue(); // Process the queue when the form is submitted
@@ -162,7 +163,6 @@ Dropzone.options.fileDropzone = {
       formData.append("file", file); // Append the file to the form data
   }
 };
-
 
 });
 </script>

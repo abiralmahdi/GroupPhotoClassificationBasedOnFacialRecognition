@@ -1,9 +1,29 @@
 {% extends 'layout.html' %}
 {% block body %}
 <section class="text-gray-600 body-font">
+<style>
+  .spinner {
+    display: inline-block;
+    width: 40px;
+    height: 40px;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #7986cb;
+    border-radius: 50%;
+    animation: spin 1s ease-in-out infinite;
+  }
+
+  @keyframes spin {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+</style>
     <div class="container px-5 py-24 mx-auto">
       <h2 class="text-center">{{event.name}} <br>  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button> 
-        <br> <a href="/triggerRecognition/{{event.id}}" class="btn btn-dark">Find the Photos where I am present</a></h2>
+        <br><button class="btn btn-dark" id="findPhotos" onclick="showLoadingAndRedirect('{{request.user.id}}', '{{event.id}}')">Find the Photos where I am present</button></h2>
       <div class="flex flex-wrap -m-4">
         {% for photo in photos %}
         <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
@@ -37,6 +57,17 @@
             </form>
           </div>
         </div>
+      </div>
+    </div>
+
+
+    <div class="modal fade" id="LoadModal" tabindex="-1" aria-labelledby="LoadModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
+      <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-body text-center">
+        <span class="spinner"></span>
+        </div>
+      </div>
       </div>
     </div>
   
@@ -80,6 +111,33 @@
         }
     };
 
+
+
+    function showLoadingAndRedirect(userId, eventId) {
+    console.log("Redirect triggered");
+
+    // Show modal
+    $('#LoadModal').modal('show');
+
+    // Polling function to check URL availability
+    function checkUrlReady() {
+        $.ajax({
+            url: `/triggerRecognition/${userId}/${eventId}`,  // Dynamically construct the URL
+            type: "HEAD",
+            success: function() {
+                $('#LoadModal').modal('hide');  // Hide modal when URL is ready
+                window.location.href = `/triggerRecognition/${userId}/${eventId}`;  // Redirect to the target URL
+            },
+            error: function() {
+                // Retry after a delay if the URL is still loading
+                setTimeout(checkUrlReady, 2000);  // Retry every 2 seconds
+            }
+        });
+    }
+
+    // Start polling
+    checkUrlReady();
+}
 </script>
 
   </section>

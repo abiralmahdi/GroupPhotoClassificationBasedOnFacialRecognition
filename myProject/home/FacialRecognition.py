@@ -8,29 +8,25 @@ arrUsers = ["abir.jpg","rdj.jpg", "rdj2.jpg", "biden.jpg"]
 arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
 
 
-def recognize(users, groupImgs):
-    for user in users:
-        for groupImg in groupImgs:
-            return cropOut(str(groupImg), user)
-
-def recognition(image_path, imgArr, userImg):
+def recognition(img, userImg):
     known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
     known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image
     
+    image = cv2.imread(img)
     # This will loop over all the cropped faces in a group photo, and match the cropped faces with the 
     # user's image. If a match is found, it will return True, else False.
-    for img in imgArr:
-        rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
-        try:
-            unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
-        except Exception as e:
-            pass
 
-        # Use the compare_faces function of the facial_recognition model to compare the cropped face and the user's real face
-        results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
-        
-        if results[0]:
-            return image_path
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # Convert the image to RGB
+    try:
+        unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
+    except Exception as e:
+        pass
+
+    # Use the compare_faces function of the facial_recognition model to compare the cropped face and the user's real face
+    results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
+    
+    if results[0]:
+        return True
     return False
 
 
@@ -54,4 +50,4 @@ def cropOut(image_path, userImg):
         face = image[y:y + h, x:x + w]  # slice/crop the face
         imgArray.append(face)  # store the cropped image in an array
 
-    return recognition(image_path, imgArray, userImg)
+    return recognition(imgArray, userImg)

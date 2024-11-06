@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import Event, PicsRelation, userPicsRelation
 from django.contrib import messages
-from .FacialRecognition import recognize
+from .FacialRecognition import recognition
 import threading
 import os
 from django.conf import settings
@@ -26,7 +26,7 @@ def myEvents(request):
                 arrPics.append(PicsRelation.objects.filter(event=event)[0])
             except:
                 pass
-        return render(request, 'events.html', {'events': events, 'users': users, 'pics':arrPics})
+        return render(request, 'events.html', {'events': events, 'users': users, 'pics':arrPics, 'status':'host'})
     else:
         return redirect("/")
 
@@ -62,27 +62,20 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(user, event):
+def checkSimilarImages(request, user, event):
+    userr = User.objects.get(id=user)
     event_ = Event.objects.get(id=event)
     pics = PicsRelation.objects.filter(event=event_)
-    profilePic = user.profilepicture
-    picsArr = []
+    profilePic = userr.profilepicture
     
     for pic in pics:
         image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        picsArr.append(image_path)
-    
-    result = recognize([profilePic], picsArr)
-    if result != False:
-        imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-        relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
-    
-        print(relevantPic.event)
-    
-        userPics = userPicsRelation(image=relevantPic)
-        userPics.save()
-        userPics.user.add(user)
-
+        result = recognition(image_path, profilePic)
+        if result:
+            relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\','/'))
+            userPics = userPicsRelation.objects.get_or_create(image=relevantPic)
+            userPicsRelation.objects.get(image=relevantPic).user.add(user)
+    return redirect("/")
     
 
 
@@ -104,35 +97,24 @@ def eventPage(request, eventID):
     thread.start()
     return render(request, 'eventPage.html',{'event':event, 'photos':pictures})
 
+def eventsAsAGuest(request, userID):
+    user = User.objects.get(id=userID)
+    events = Event.objects.filter(guest=user)
+    if request.user.is_authenticated:
+        arrPics = []
+        for event in events:
+            try:
+                arrPics.append(PicsRelation.objects.filter(event=event)[0])
+            except:
+                pass
+    return render(request, "events.html", {"events":events, 'status':'guest', 'pics':arrPics})
+
 
 def myPhotos(request):
     if request.user.is_authenticated:
         picsUser = userPicsRelation.objects.filter(user=request.user)
         events = Event.objects.filter(guest=request.user)
-        picsEvent = PicsRelation.objects.filter(event__in=events)
-
-        
-
-        # for event in events:
-        #     mydict = {f"{event.name}": []}  # Initialize a dictionary for each event
-
-        #     for pic in pics:
-        #         try:
-        #             # Filter PicsRelation based on event and picture's image
-        #             p = PicsRelation.objects.get(event=event, image=pic.image)
-        #             mydict[f"{event.name}"].append(p)  # Append pic object to the event's list
-        #         except PicsRelation.DoesNotExist:
-        #             continue  # If no matching picture found, continue to the next iteration
-            
-        #     myArr.append(mydict)  # Append the dictionary to myArr
-
-        # return render(request, 'myPhotos.html', {
-        #     'users_': request.user, 
-        #     'pics': pics, 
-        #     'events': events, 
-        #     'picsEvent': picsEvent, 
-        #     'myArr': myArr  # Pass the constructed array to the template
-        # })
+        # picsEvent = PicsRelation.objects.filter(event__in=events)
 
         myBigArr = []
         for event in events:
@@ -142,7 +124,7 @@ def myPhotos(request):
                 if picUser.image in pic:
                     myArr.append(picUser)
             myBigArr.append([event, myArr])
-        print(myBigArr)
+        print(myBigArr[0][0])
         return render(request, 'myPhotos.html', {'myBigArr':myBigArr})
 
     else:

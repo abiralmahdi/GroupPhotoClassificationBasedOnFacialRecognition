@@ -8,5 +8,6 @@ urlpatterns = [
     path('addEvents', views.addEvents, name='addEvents'),
     path('addPhotos/<str:eventID>', views.addPhotos, name='addPhotos'),
     path('myEvents/<str:eventID>', views.eventPage, name='eventPage'),
-    path('triggerRecognition/<str:event>', views.checkSimilarImages, name='checkSimilarImages'),
+    path('eventsAsAGuest/<str:userID>', views.eventsAsAGuest, name='eventsAsAGuest'),
+    path('triggerRecognition/<str:user>/<str:event>', views.checkSimilarImages, name='checkSimilarImages'),
 ]

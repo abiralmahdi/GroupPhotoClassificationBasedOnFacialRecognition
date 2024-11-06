@@ -17,10 +17,15 @@ from django.http import JsonResponse
 def checkSimilarImages(request, eventID):
     event_ = Event.objects.get(id=eventID)
     pics = PicsRelation.objects.filter(event=event_)
-    
+
     if request.method == "POST":
-        # Get list of uploaded files
-        uploaded_files = request.FILES.getlist('file')
+        # Get the uploaded file (only one file expected)
+        profilePic = request.FILES.get('file')  # Fetch the single file
+        print(profilePic)
+        
+        if not profilePic:
+            return render(request, "clientImages.html", {'event': event_, 'photos': [], 'error': "No file uploaded"})
+
         picsArr = []
 
         # Get paths for existing event pictures
@@ -30,35 +35,45 @@ def checkSimilarImages(request, eventID):
 
         matched_pics = []  # To store userPicsRelation objects for matched images
 
-        # Compare each uploaded file against existing pictures
-        for profilePic in uploaded_files:
-            for pic in picsArr:
-                # Assuming recognize is a function that returns the path of the recognized image or None
-                result = recognize(profilePic, pic)
-                if result:
-                    imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-                    relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
+        # Compare the uploaded file against existing pictures
+        for pic in picsArr:
+            # Assuming recognize is a function that returns the path of the recognized image or None
+            result = recognize(profilePic, pic)
+            
+            if result:  # If a match is found
+                imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
+                relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
 
-                    # Save the matching picture to userPicsRelation
-                    userPic = userPicsRelation(image=relevantPic)
-                    userPic.save()
-                    
-                    # Collect the userPic object to send to the template
-                    matched_pics.append(userPic)
+                # Save the matching picture to userPicsRelation
+                userPic = userPicsRelation(image=relevantPic)
+                userPic.save()
+
+                # Collect the userPic object to send to the template
+                matched_pics.append(userPic)
+
+        if not matched_pics:
+            error_message = "No matching images found"
+            return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics, 'error': error_message})
 
         # Render the template with matched pictures
         return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics})
-    
+
+    # If it's not a POST request, render the template with no photos
     return render(request, "clientImages.html", {'event': event_})
 
 
 
+
+
 def sharedEvent(request, eventID):
-    thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
+    thread = threading.Thread(target=checkSimilarImages, args=(request, eventID))
     thread.start()
     event = Event.objects.get(id=eventID)
     if not event.published:
         return HttpResponse("<h1>Restricted access</h1>")
+    
+
     pictures = PicsRelation.objects.filter(event=event)
-    return render(request, 'clienteventPage.html',{'event':event, 'photos':pictures})
+
+    return render(request, 'clienteventPage.html',{'event':event, 'photos':pictures,'eventcode':event.code})
    

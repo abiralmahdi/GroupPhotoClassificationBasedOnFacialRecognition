@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
         var enteredCode = document.getElementById('accessCodeInput').value;
 
         // Replace with your actual event code
-        var actualCode = "{{ event.code }}";
+        var actualCode = "{{ eventcode }}";
 
         if (enteredCode === actualCode) {
             // If the code matches, hide the modal and show the main content
@@ -121,42 +121,49 @@ document.addEventListener("DOMContentLoaded", function() {
         height: 128,
     });
 
-    // Dropzone configuration
-    Dropzone.options.fileDropzone = {
-        maxFilesize: 20, // Set the maximum file size to 20MB
-        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
-        autoProcessQueue: false, // Don't auto process the queue
-        uploadMultiple: true, // Allow multiple files
-        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
-        addRemoveLinks: true,
-        dictDefaultMessage: "Drag & drop images here to upload or take a photo",
-        init: function() {
-            var myDropzone = this;
+ // Dropzone configuration
+// Dropzone configuration
+Dropzone.options.fileDropzone = {
+  maxFiles: 1, // Allow only 1 file to be uploaded
+  maxFilesize: 1, // Set the maximum file size to 1MB (adjust as needed)
+  acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+  autoProcessQueue: false, // Don't auto process the queue
+  uploadMultiple: false, // Disable multiple file uploads
+  parallelUploads: 1, // Upload only 1 file at a time
+  addRemoveLinks: true, // Allow removing files
+  dictDefaultMessage: "Drag & drop an image here to upload or take a photo",
+  init: function() {
+      var myDropzone = this;
 
-            // When the form is submitted, manually process the Dropzone queue
-            document.querySelector("form").addEventListener("submit", function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                myDropzone.processQueue();
-            });
+      // When the form is submitted, manually process the Dropzone queue
+      document.querySelector("form").addEventListener("submit", function(e) {
+          e.preventDefault();
+          e.stopPropagation();
+          myDropzone.processQueue(); // Process the queue when the form is submitted
+      });
 
-            // On successful upload
-            myDropzone.on("success", function(file, response) {
-                console.log('File uploaded successfully');
-            });
+      // On successful upload
+      myDropzone.on("success", function(file, response) {
+          console.log('File uploaded successfully');
+      });
 
-            // On error
-            myDropzone.on("error", function(file, response) {
-                console.log('File upload failed');
-            });
-        },
-        renameFile: function(file) {
-            return file.name; // Return the original name of the file
-        },
-        sending: function(file, xhr, formData) {
-            formData.append("file", file); // Append the file to the form data
-        }
-    };
+      // On error
+      myDropzone.on("error", function(file, response) {
+          console.log('File upload failed');
+      });
+  },
+
+  // Rename file to use the original file name
+  renameFile: function(file) {
+      return file.name;
+  },
+
+  sending: function(file, xhr, formData) {
+      formData.append("file", file); // Append the file to the form data
+  }
+};
+
+
 });
 </script>
 

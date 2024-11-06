@@ -10,6 +10,7 @@ import os
 from django.conf import settings
 from django.http import JsonResponse
 import random
+from .FacialRecognition import recognition
 
 User = get_user_model()  # Correctly get the User model
 
@@ -68,27 +69,21 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(user, event):
+def checkSimilarImages(request, user, event):
+    userr = User.objects.get(id=user)
     event_ = Event.objects.get(id=event)
     pics = PicsRelation.objects.filter(event=event_)
-    profilePic = user.profilepicture
-    picsArr = []
+    profilePic = userr.profilepicture
     
     for pic in pics:
         image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        picsArr.append(image_path)
-    for pic in picsArr:
-        result = recognize(profilePic, pic)
+        result = recognition(image_path, profilePic)
         if result:
-            imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
-            relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\','/'))
+            relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\','/'))
+            userPics = userPicsRelation.objects.get_or_create(image=relevantPic)
+            userPicsRelation.objects.get(image=relevantPic).user.add(user)
+    return redirect("/")
     
-       
-    
-            userPics = userPicsRelation(image=relevantPic)
-            userPics.save()
-            userPics.user.add(user)
-
     
 
 

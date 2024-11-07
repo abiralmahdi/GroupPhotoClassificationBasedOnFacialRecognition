@@ -7,6 +7,8 @@ from .FacialRecognition import recognition
 import threading
 import os
 from django.conf import settings
+from django.http import JsonResponse
+import random
 
 
 User = get_user_model()  # Correctly get the User model
@@ -42,9 +44,10 @@ def addEvents(request):
 
         # Fetch the User objects corresponding to the guest IDs
         guests = User.objects.filter(id__in=guest_ids)
+        code = random.randint(100000, 999999)
 
         # Create the Event instance
-        event = Event.objects.create(name=name, description=description, event_date=event_date, host=host)
+        event = Event.objects.create(name=name, description=description, event_date=event_date, host=host, code=code)
 
         # Set the guests for the event
         event.guest.set(guests)
@@ -129,3 +132,22 @@ def myPhotos(request):
 
     else:
         return redirect("/")
+    
+
+
+def publishEvent(request, eventID):
+    event = Event.objects.get(id=eventID)
+    event.published = True
+    event.save()
+    return JsonResponse({"status":"success"})
+
+def checkEventStatus(request, eventID):
+    event = Event.objects.get(id=eventID)
+    return JsonResponse({"status":event.published})
+
+
+def restrictEvent(request, eventID):
+    event = Event.objects.get(id=eventID)
+    event.published = False
+    event.save()
+    return JsonResponse({"status":"success"})

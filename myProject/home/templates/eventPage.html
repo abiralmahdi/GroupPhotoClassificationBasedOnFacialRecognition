@@ -22,8 +22,17 @@
   }
 </style>
     <div class="container px-5 py-24 mx-auto">
-      <h2 class="text-center">{{event.name}} <br>  <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button> 
-        <br><button class="btn btn-dark" id="findPhotos" onclick="showLoadingAndRedirect('{{request.user.id}}', '{{event.id}}')">Find the Photos where I am present</button></h2>
+      <h2 class="text-center">{{event.name}} <br>
+        <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button> 
+        <span id="btnSpan">
+          {% if event.published == True %}
+            <button class="btn btn-danger" id="restrictBtn" onclick="restrictEvent()">Restrict Event</button> 
+          {% else %}
+            <button class="btn btn-primary" id="publishBtn" data-bs-toggle="modal" data-bs-target="#publishModal">Publish Event</button> 
+          {% endif %}
+          </span>
+        <br>
+        <button class="btn btn-dark" id="findPhotos" onclick="showLoadingAndRedirect('{{request.user.id}}', '{{event.id}}')">Find the Photos where I am present</button></h2>
       <div class="flex flex-wrap -m-4">
         {% for photo in photos %}
         <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
@@ -39,6 +48,34 @@
         {% endfor %}
       </div>
     </div>
+
+
+
+    <div class="container my-5" id="information" style="visibility: {% if event.published == True %}visible{% else %}hidden{% endif %};">
+      <div class="row">
+        <!-- Left side content: Event Info -->
+        <div class="col-md-8">
+          <h5 class="mb-3">Event Information</h5>
+          <div class="form-group">
+            <label>Event Link:</label>
+            <span>http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</span>
+          </div>
+          <div class="form-group mt-3">
+            <label>Event Code:</label>
+            <span>{{event.code}}</span>
+          </div>
+        </div>
+    
+        <!-- Right side content: QR Code -->
+        <div class="col-md-4 text-center">
+          <h5 class="mb-3">Share with QR Code</h5>
+          <div id="qrcode" style="width: 150px; height: 150px; margin: 0 auto;"></div>
+        </div>
+      </div>
+    </div>
+
+
+
 
 
 
@@ -70,75 +107,136 @@
       </div>
       </div>
     </div>
+
+
+
+
+    <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="publishModalLabel">Publish Event</h5>
+            <button class="btn btn-success ml-auto" onclick="publishEvent()" id="publishModalBtn"> Publish</button>
+          </div>
+          <div class="modal-body text-center">
+            <form class="form">
+              <input type="text" class="form-control my-2" value="{{event.name}}" disabled>
+              <input type="text" class="form-control my-2" value="{{event.event_date}}" disabled>
+              <textarea class="form-control my-2" disabled style="height: 200px;">{{event.description}}</textarea>
+              <hr>
+              <div class="flex">
+                <div id="qrCodeForModal" style="width: 128px; height: 128px;"></div>
+                <div class="">
+                  <div type="text" class="form-control ml-3 my-2" style="width: 100%;">http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
+                  <div type="text" class="form-control ml-3 my-2" style="width: 100%;">{{event.code}}</div>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
   
-<script>
-  // DropZone JS
-    Dropzone.options.fileDropzone = {
-        maxFilesize: 20, // Set the maximum file size to 20MB
-        acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
-        autoProcessQueue: false, // Don't auto process the queue
-        uploadMultiple: true, // Allow multiple files
-        parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
-        addRemoveLinks: true,
-        dictDefaultMessage: "Drag & drop images here to upload",
-        init: function() {
-            var myDropzone = this;
-            
-            // When the form is submitted, manually process the Dropzone queue
-            document.querySelector("form").addEventListener("submit", function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                myDropzone.processQueue();
-            });
-            
-            // On successful upload
-            myDropzone.on("success", function(file, response) {
-                console.log('File uploaded successfully');
-            });
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-            // On error
-            myDropzone.on("error", function(file, response) {
-                console.log('File upload failed');
-            });
-        },
-        // Set the name attribute for the file input
-        renameFile: function(file) {
-            return file.name; // Return the original name of the file
-        },
-        // Set the parameters for the request
-        sending: function(file, xhr, formData) {
-            formData.append("file", file); // Append the file to the form data
-        }
-    };
+    <script>
+      var qrcode = new QRCode("qrcode", "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}");
 
+      // QR Code for modal
+      var modalQRCode = new QRCode("qrCodeForModal", "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}");
 
+      // DropZone JS
+      Dropzone.options.fileDropzone = {
+          maxFilesize: 20, // Set the maximum file size to 20MB
+          acceptedFiles: '.jpeg,.jpg,.png', // Define accepted file types
+          autoProcessQueue: false, // Don't auto process the queue
+          uploadMultiple: true, // Allow multiple files
+          parallelUploads: 10, // Allow up to 10 files to be uploaded in parallel
+          addRemoveLinks: true,
+          dictDefaultMessage: "Drag & drop images here to upload",
+          init: function() {
+              var myDropzone = this;
+              
+              // When the form is submitted, manually process the Dropzone queue
+              document.querySelector("form").addEventListener("submit", function(e) {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  myDropzone.processQueue();
+              });
+              
+              // On successful upload
+              myDropzone.on("success", function(file, response) {
+                  console.log('File uploaded successfully');
+              });
 
-    function showLoadingAndRedirect(userId, eventId) {
-    console.log("Redirect triggered");
+              // On error
+              myDropzone.on("error", function(file, response) {
+                  console.log('File upload failed');
+              });
+          },
+          // Set the name attribute for the file input
+          renameFile: function(file) {
+              return file.name; // Return the original name of the file
+          },
+          // Set the parameters for the request
+          sending: function(file, xhr, formData) {
+              formData.append("file", file); // Append the file to the form data
+          }
+        };
 
-    // Show modal
-    $('#LoadModal').modal('show');
-
-    // Polling function to check URL availability
-    function checkUrlReady() {
-        $.ajax({
-            url: `/triggerRecognition/${userId}/${eventId}`,  // Dynamically construct the URL
-            type: "HEAD",
-            success: function() {
-                $('#LoadModal').modal('hide');  // Hide modal when URL is ready
-                window.location.href = `/triggerRecognition/${userId}/${eventId}`;  // Redirect to the target URL
-            },
-            error: function() {
-                // Retry after a delay if the URL is still loading
-                setTimeout(checkUrlReady, 2000);  // Retry every 2 seconds
-            }
+      // Publish event
+      function publishEvent(){
+        fetch('/publishEvent/{{event.id}}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{csrf_token}}'
+          },
+          body: JSON.stringify({}) // Add the data to be sent in the request body
+        })
+        .then(response => {
+          if (response.ok) {
+            console.log('Event published successfully');
+              document.getElementById("btnSpan").innerHTML = `<button class="btn btn-danger" id="restrictBtn" onclick="restrictEvent()">Restrict Event</button>`;
+              document.getElementById("publishModalBtn").disabled = true;
+              document.getElementById("publishModalBtn").innerText = "Event Published";
+              document.getElementById("information").style.visibility = "visible"; // Show the information section
+            } else {
+            console.log('Failed to publish event');
+          }
+        })
+        .catch(error => {
+          console.log('An error occurred while publishing event:', error);
         });
-    }
+      };
 
-    // Start polling
-    checkUrlReady();
-}
-</script>
+      function restrictEvent(){
+        fetch('/restrictEvent/{{event.id}}', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{csrf_token}}'
+          },
+          body: JSON.stringify({}) // Add the data to be sent in the request body
+        })
+        .then(response => {
+          if (response.ok) {
+            console.log('Event restricted successfully');
+            document.getElementById("btnSpan").innerHTML = `<button class="btn btn-primary" id="publishBtn" data-bs-toggle="modal" data-bs-target="#publishModal">Publish Event</button>`;
+            document.getElementById("publishModalBtn").disabled = false;
+            document.getElementById("publishModalBtn").innerText = "Publish Event";  
+            document.getElementById("information").style.visibility = "hidden"; // Hide the information section
+          } else {
+            console.log('Failed to restrict event');
+          }
+        })
+        .catch(error => {
+          console.log('An error occurred while restricting event:', error);
+        });
+      };
+    </script>
 
   </section>
 

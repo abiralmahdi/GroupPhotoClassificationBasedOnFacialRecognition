@@ -138,7 +138,7 @@ Dropzone.options.fileDropzone = {
 
       // When the form is submitted, manually process the Dropzone queue
       document.querySelector("#file-dropzone").addEventListener("submit", function(e) {
-          e.preventDefault();
+          //e.preventDefault();
           e.stopPropagation();
           myDropzone.processQueue(); // Process the queue when the form is submitted
       });

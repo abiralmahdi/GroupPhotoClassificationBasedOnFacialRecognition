@@ -35,8 +35,7 @@ def checkSimilarImages(request, eventID):
                 image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
                 
                 # Assuming 'recognize' function compares the images and returns a path if matched
-                print(f"user: {profile_pic_path} \n froupimage {image_path}")
-                result = recognize(profile_pic_path ,image_path)
+                result = recognize(str(profile_pic_path) ,(image_path))
                 if result:
                     imgPath = os.path.relpath(result, settings.MEDIA_ROOT)
                     relevantPic = PicsRelation.objects.get(image=imgPath.replace('\\', '/'))
@@ -53,7 +52,7 @@ def checkSimilarImages(request, eventID):
         # Render the template with matched pictures
         return render(request, "clientImages.html", {'event': event_, 'photos': matched_pics})
     
-    return render(request, "clientImages.html", {'event': event_})
+    return render(request, "clientImages.html", {'event': event_,'photos': None})
 
 
 

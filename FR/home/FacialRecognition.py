@@ -5,30 +5,39 @@ face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_fronta
 
 
 def recognize(users, groupImgs):
-    for user in users:
-        for groupImg in groupImgs:
-            print(f"user: {user} \n froupimage {groupImg}")
-            return cropOut(groupImg, user)
+    
+    return cropOut(groupImgs, users)
 
 def recognition(image_path, imgArr, userImg):
-    known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
-    known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image
+    # Load and encode the user's image
+    known_image = face_recognition.load_image_file(userImg)  # Loading the image of the user
+    known_encodings = face_recognition.face_encodings(known_image)
     
-    # This will loop over all the cropped faces in a group photo, and match the cropped faces with the 
-    # user's image. If a match is found, it will return True, else False.
-    for img in imgArr:
-        rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) # Convert the image to RGB
-        try:
-            unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
-        except Exception as e:
-            pass
+    # Check if a face was found in the user's image
+    if not known_encodings:
+        print("No face detected in the user's image.")
+        return False  # Handle the error or return False if no face is found
 
-        # Use the compare_faces function of the facial_recognition model to compare the cropped face and the user's real face
-        results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
+    known_encoding = known_encodings[0]  # Get the first encoding
+
+    # Loop over all cropped faces in the group photo
+    for img in imgArr:
+        rgb_image = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # Convert the image to RGB
+        try:
+            unknown_encoding = face_recognition.face_encodings(rgb_image)[0]  # Find the encoding of the RGB image
+        except IndexError:
+            # Skip this face if no encoding was found
+            print("No face detected in a cropped image.")
+            continue
+
+        # Compare the cropped face and the user's face
+        results = face_recognition.compare_faces([known_encoding], unknown_encoding)
         
         if results[0]:
-            return image_path
-    return False
+            return image_path  # Return the matched image path if a match is found
+
+    return None  # Return False if no match is found
+
 
 
 def cropOut(image_path, userImg):

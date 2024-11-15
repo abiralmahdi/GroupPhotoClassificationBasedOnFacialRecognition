@@ -1,9 +1,13 @@
-{% extends 'layout.html' %}
-{% load static %}
-{% block body %}
+{% extends 'layout.html' %} {% load static %} {% block body %}
 
 <!-- Modal for entering code -->
-<div class="modal fade" id="codeModal" tabindex="-1" aria-labelledby="codeModalLabel" aria-hidden="true">
+<div
+  class="modal fade"
+  id="codeModal"
+  tabindex="-1"
+  aria-labelledby="codeModalLabel"
+  aria-hidden="true"
+>
   <div class="modal-dialog">
     <div class="modal-content">
       <div class="modal-header">
@@ -11,7 +15,13 @@
       </div>
       <div class="modal-body">
         <form id="codeForm">
-          <input type="text" class="form-control my-2" id="accessCodeInput" placeholder="Enter code" required>
+          <input
+            type="text"
+            class="form-control my-2"
+            id="accessCodeInput"
+            placeholder="Enter code"
+            required
+          />
           <button type="submit" class="btn btn-primary">Submit</button>
         </form>
       </div>
@@ -20,151 +30,117 @@
 </div>
 
 <!-- Main content section that is hidden initially -->
-<section class="text-gray-600 body-font" id="main-content" style="display:none;">
-    <div class="container px-5 py-24 mx-auto">
-        <h2 class="text-center">{{event.name}} 
-          <br>
-          <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Find your Photos</button> 
-        </h2>
-      <div class="flex flex-wrap mt-4">
-        {% for photo in photos %}
-        <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
-          <a class="block relative h-48 rounded overflow-hidden">
-            <img alt="ecommerce" class="object-cover object-center w-full h-full block" src="/media/{{photo.image}}">
-          </a>
-          <div class="mt-4">
-            <p class="mt-1">Uploaded on: {{photo.date}}</p>
-          </div>
+<section
+  class="text-gray-600 body-font"
+  id="main-content"
+  style="display: none"
+>
+  <div class="container px-5 py-24 mx-auto">
+    <h2 class="text-center">
+      {{ event.name }}
+      <br />
+      <button
+        class="btn btn-success"
+        data-bs-toggle="modal"
+        data-bs-target="#addPhotosModal"
+      >
+        Find your Photos
+      </button>
+    </h2>
+    <div class="flex flex-wrap mt-4">
+      {% for photo in photos %}
+      <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
+        <a class="block relative h-48 rounded overflow-hidden">
+          <img
+            alt="ecommerce"
+            class="object-cover object-center w-full h-full block"
+            src="/media/{{ photo.image }}"
+          />
+        </a>
+        <div class="mt-4">
+          <p class="mt-1">Uploaded on: {{ photo.date }}</p>
         </div>
-        {% endfor %}
       </div>
+      {% endfor %}
     </div>
+  </div>
 
-    <!-- Add Photos Modal -->
-    <div class="modal fade" id="addPhotosModal" tabindex="-1" aria-labelledby="addPhotosModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addPhotosModalLabel">Add Your Photo</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body text-center">
-            <form action="" method="POST" class="dropzone" id="file-dropzone" enctype="multipart/form-data">
-              {% csrf_token %}
-              <div class="dropzone-previews"></div>
-              <button type="submit" class="btn btn-primary m-3">Recognize</button>
+  <!-- Add Photos Modal -->
+  <div
+    class="modal fade"
+    id="addPhotosModal"
+    tabindex="-1"
+    aria-labelledby="addPhotosModalLabel"
+    aria-hidden="true"
+  >
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addPhotosModalLabel">Add Your Photo</h5>
+          <button
+            type="button"
+            class="btn-close"
+            data-bs-dismiss="modal"
+            aria-label="Close"
+          ></button>
+        </div>
+        <div class="modal-body text-center">
+          <!-- Image upload form -->
+          <form
+            action="{% if request.user.is_authenticated %}/triggerRecognition/{{ request.user.id }}/{{ event.id }}/guest{% else %}/triggerRecognition/None/{{ event.id }}/guest{% endif %}"
+            method="POST"
+            enctype="multipart/form-data"
+          >
+            {% csrf_token %}
+            <div class="form-group">
+              <label for="photoUpload" class="form-label"
+                >Choose an Image</label
+              >
+              <input
+                type="file"
+                name="photo"
+                id="photoUpload"
+                class="form-control"
+                accept="image/*"
+                required
+              />
+            </div>
+            <button type="submit" class="btn btn-primary m-3">
+              Upload and Recognize
+            </button>
           </form>
-          
-          </div>
         </div>
       </div>
     </div>
-
-    <!-- Publish Modal -->
-    <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="publishModalLabel">Publish Event</h5>
-            <button class="btn btn-success ml-auto" onclick="publishEvent()" id="publishModalBtn">Publish</button>
-          </div>
-          <div class="modal-body text-center">
-            <form class="form">
-              <input type="text" class="form-control my-2" value="{{event.name}}" disabled>
-              <input type="text" class="form-control my-2" value="{{event.event_date}}" disabled>
-              <textarea class="form-control my-2" disabled style="height: 200px;">{{event.description}}</textarea>
-              <hr>
-              <div class="flex">
-                <div id="qrcode" style="width: 128px; height: 128px;"></div>
-                <div class="">
-                  <div class="form-control ml-3 my-2" style="width: 100%;">http://127.0.0.1:8000/client/sharedEvent/{{event.id}}</div>
-                  <div class="form-control ml-3 my-2" style="width: 100%;">{{event.code}}</div>
-                </div>
-              </div>
-            </form>
-          </div>
-        </div>
-      </div>
-    </div>
+  </div>
 </section>
 
-<!-- Dropzone Script -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 <script>
-document.addEventListener("DOMContentLoaded", function() {
+  document.addEventListener("DOMContentLoaded", function () {
     // Show the code modal when the page loads
-    var codeModal = new bootstrap.Modal(document.getElementById('codeModal'));
+    var codeModal = new bootstrap.Modal(document.getElementById("codeModal"));
     codeModal.show();
 
     // Form submission handler for checking the access code
-    document.getElementById('codeForm').addEventListener('submit', function(event) {
+    document
+      .getElementById("codeForm")
+      .addEventListener("submit", function (event) {
         event.preventDefault();
-        var enteredCode = document.getElementById('accessCodeInput').value;
+        var enteredCode = document.getElementById("accessCodeInput").value;
 
         // Replace with your actual event code
         var actualCode = "{{ eventcode }}";
 
         if (enteredCode === actualCode) {
-            // If the code matches, hide the modal and show the main content
-            codeModal.hide();
-            document.getElementById('main-content').style.display = 'block';
+          // If the code matches, hide the modal and show the main content
+          codeModal.hide();
+          document.getElementById("main-content").style.display = "block";
         } else {
-            // If the code doesn't match, show an error
-            alert('Incorrect code. Please try again.');
+          // If the code doesn't match, show an error
+          alert("Incorrect code. Please try again.");
         }
-    });
-
-    // Initialize QR Code
-    var qrcode = new QRCode(document.getElementById("qrcode"), {
-        text: "http://127.0.0.1:8000/client/sharedEvent/{{event.id}}",
-        width: 128,
-        height: 128,
-    });
-
-// Dropzone configuration
-Dropzone.options.fileDropzone = {
-  maxFiles: 1, // Allow only 1 file to be uploaded
-  maxFilesize: 1, // Set the maximum file size to 1MB (adjust as needed)
-  acceptedFiles: '', // Accept all file types (set to an empty string)
-  autoProcessQueue: false, // Don't auto process the queue
-  uploadMultiple: false, // Disable multiple file uploads
-  parallelUploads: 1, // Upload only 1 file at a time
-  addRemoveLinks: true, // Allow removing files
-  dictDefaultMessage: "Drag & drop an image here to upload or take a photo",
-
-  init: function() {
-      var myDropzone = this;
-
-      // When the form is submitted, manually process the Dropzone queue
-      document.querySelector("#file-dropzone").addEventListener("submit", function(e) {
-          //e.preventDefault();
-          e.stopPropagation();
-          myDropzone.processQueue(); // Process the queue when the form is submitted
       });
-
-      // On successful upload
-      myDropzone.on("success", function(file, response) {
-          console.log('File uploaded successfully');
-      });
-
-      // On error
-      myDropzone.on("error", function(file, response) {
-          console.log('File upload failed');
-      });
-  },
-
-  // Rename file to use the original file name
-  renameFile: function(file) {
-      return file.name;
-  },
-
-  sending: function(file, xhr, formData) {
-      formData.append("file", file); // Append the file to the form data
-  }
-};
-
-});
+  });
 </script>
 
 {% endblock %}

@@ -68,7 +68,7 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(request, user, event, mode):
+def checkSimilarImages(request, user=None, event=None, mode="guest"):
     userr = User.objects.get(id=user)
     event_ = Event.objects.get(id=event)
     pics = PicsRelation.objects.filter(event=event_)

@@ -9,7 +9,10 @@ import os
 from django.conf import settings
 from django.http import JsonResponse
 import random
-
+from django.http import HttpResponse
+import os
+import zipfile
+from io import BytesIO
 
 User = get_user_model()  # Correctly get the User model
 
@@ -33,7 +36,7 @@ def myEvents(request):
         return redirect("/")
 
 
-
+@login_required
 def addEvents(request):
     if request.method == "POST":
         name = request.POST.get('eventName')
@@ -65,23 +68,48 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(request, user, event):
+def checkSimilarImages(request, user, event, mode):
     userr = User.objects.get(id=user)
     event_ = Event.objects.get(id=event)
     pics = PicsRelation.objects.filter(event=event_)
-    profilePic = userr.profilepicture
-    
-    for pic in pics:
-        image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-        result = recognition(image_path, profilePic)
-        if result:
-            relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\','/'))
-            userPics = userPicsRelation.objects.get_or_create(image=relevantPic)
-            userPicsRelation.objects.get(image=relevantPic).user.add(user)
+    relevant_pics = []
+
+    if mode == "host" and request.method == "POST":
+        profilePic = request.FILES['uploadedPhoto']
+        personName = request.POST['personName']
+        for pic in pics:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+            result = recognition(image_path, profilePic)
+            if result:
+                relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
+                relevant_pics.append(image_path)
+
+        # Create a zip file for download
+        if relevant_pics:
+            zip_buffer = BytesIO()
+            with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+                for file_path in relevant_pics:
+                    zip_file.write(file_path, os.path.basename(file_path))
+            zip_buffer.seek(0)
+            
+            response = HttpResponse(zip_buffer, content_type='application/zip')
+            response['Content-Disposition'] = f'attachment; filename="{personName}.zip"'
+            return response
+
+    elif mode == "guest":
+        profilePic = userr.profilepicture
+        for pic in pics:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+            result = recognition(image_path, profilePic)
+            if result:
+                relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
+                userPics, created = userPicsRelation.objects.get_or_create(image=relevantPic)
+                userPics.user.add(user)
+
     return redirect("/")
     
 
-
+@login_required
 def addPhotos(request, eventID):
     if request.method == "POST":
         event = Event.objects.get(id=eventID)
@@ -92,13 +120,14 @@ def addPhotos(request, eventID):
             print(f"Picture saved for event: {event.name}")
     return redirect("/myEvents/"+eventID)
 
-
+@login_required
 def eventPage(request, eventID):
     event = Event.objects.get(id=eventID)
     pictures = PicsRelation.objects.filter(event=event)
     thread = threading.Thread(target=checkSimilarImages, args=(request.user, eventID))
     thread.start()
     return render(request, 'eventPage.html',{'event':event, 'photos':pictures})
+
 
 def eventsAsAGuest(request, userID):
     user = User.objects.get(id=userID)
@@ -112,7 +141,7 @@ def eventsAsAGuest(request, userID):
                 pass
     return render(request, "events.html", {"events":events, 'status':'guest', 'pics':arrPics})
 
-
+@login_required
 def myPhotos(request):
     if request.user.is_authenticated:
         picsUser = userPicsRelation.objects.filter(user=request.user)
@@ -134,12 +163,15 @@ def myPhotos(request):
         return redirect("/")
     
 
-
+@login_required
 def publishEvent(request, eventID):
     event = Event.objects.get(id=eventID)
-    event.published = True
-    event.save()
-    return JsonResponse({"status":"success"})
+    if request.user.id == event.host.id:
+        event.published = True
+        event.save()
+        return JsonResponse({"status":"success"})
+    else:
+        return JsonResponse({"status":"unauthorized"})
 
 def checkEventStatus(request, eventID):
     event = Event.objects.get(id=eventID)

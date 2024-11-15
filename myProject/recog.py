@@ -1,5 +1,6 @@
 import cv2
 import face_recognition
+import pyttsx3
 
 # Load the pre-trained Haar Cascade classifier for face detection
 face_cascade = cv2.CascadeClassifier(cv2.data.haarcascades + 'haarcascade_frontalface_default.xml')
@@ -11,7 +12,8 @@ arrGroupImgs = [
     ("images/rdj3.jpg", "RDJ 3"), 
     ("images/abirGroup.jpg", "Abir Group"),
     ("images/sam1.jpg", "Samia 1"),
-    ("images/sam2.jpg", "samia 2")
+    ("images/sam2.jpg", "samia 2"),
+    ("images/Anmol.jpg", "Anmol")
 ]
 
 def recognition(cropped_face, user_encoding):
@@ -65,6 +67,10 @@ while True:
     face_locations = face_recognition.face_locations(rgb_frame)
     face_encodings = face_recognition.face_encodings(rgb_frame, face_locations)
 
+    
+    # Initialize the text-to-speech engine
+    engine = pyttsx3.init()
+
     for (top, right, bottom, left), face_encoding in zip(face_locations, face_encodings):
         match_found = False
         label = "Unknown"
@@ -83,6 +89,10 @@ while True:
         cv2.rectangle(frame, (left, bottom - 35), (right, bottom), color, cv2.FILLED)
         font = cv2.FONT_HERSHEY_DUPLEX
         cv2.putText(frame, label, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+        # Output label through audio
+        engine.say(label)
+        engine.runAndWait()
 
     # Display the resulting frame
     cv2.imshow('Face Recognition', frame)

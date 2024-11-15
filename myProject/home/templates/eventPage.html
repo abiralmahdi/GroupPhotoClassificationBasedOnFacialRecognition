@@ -23,16 +23,20 @@
 </style>
     <div class="container px-5 py-24 mx-auto">
       <h2 class="text-center">{{event.name}} <br>
+        {% if event.host.id == request.user.id %}
         <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addPhotosModal">Add Photos</button> 
+        <button class="btn btn-warning" id="findBtn" data-bs-toggle="modal" data-bs-target="#findModal">Find Photos of a Specific Person</button> 
         <span id="btnSpan">
-          {% if event.published == True %}
-            <button class="btn btn-danger" id="restrictBtn" onclick="restrictEvent()">Restrict Event</button> 
-          {% else %}
-            <button class="btn btn-primary" id="publishBtn" data-bs-toggle="modal" data-bs-target="#publishModal">Publish Event</button> 
-          {% endif %}
-          </span>
+            {% if event.published == True %}
+              <button class="btn btn-danger" id="restrictBtn" onclick="restrictEvent()">Restrict Event</button>
+            {% else %}
+              <button class="btn btn-primary" id="publishBtn" data-bs-toggle="modal" data-bs-target="#publishModal">Publish Event</button> 
+            {% endif %}
+
+        </span>
+        {% endif %}
         <br>
-        <button class="btn btn-dark" id="findPhotos" onclick="showLoadingAndRedirect('{{request.user.id}}', '{{event.id}}')">Find the Photos where I am present</button></h2>
+        <a class="btn btn-dark" id="findPhotos" href="/triggerRecognition/{{request.user.id}}/{{event.id}}/guest">Find the Photos where I am present</a></h2>
       <div class="flex flex-wrap -m-4">
         {% for photo in photos %}
         <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
@@ -98,18 +102,6 @@
     </div>
 
 
-    <div class="modal fade" id="LoadModal" tabindex="-1" aria-labelledby="LoadModalLabel" aria-hidden="true" data-bs-backdrop="static" data-bs-keyboard="false">
-      <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-body text-center">
-        <span class="spinner"></span>
-        </div>
-      </div>
-      </div>
-    </div>
-
-
-
 
     <div class="modal fade" id="publishModal" tabindex="-1" aria-labelledby="publishModalLabel" aria-hidden="true">
       <div class="modal-dialog">
@@ -138,6 +130,26 @@
     </div>
 
 
+
+    <div class="modal fade" id="findModal" tabindex="-1" aria-labelledby="findModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addPhotosModalLabel">Find Photos of a Specific Person</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center">
+            <form action="/triggerRecognition/{{request.user.id}}/{{event.id}}/host" method="POST" enctype="multipart/form-data">
+              {% csrf_token %}
+              <p class="text-dark">Please add a photo of the person you want to find pictures of. Our Facial recognition system will scan for all the photos and find all the matching images. A zip file containing all the mathcing photos will be downloaded shortly.</p>
+              <input type="text" name="personName" class="form-control" placeholder="Person's Name">
+              <input type="file" name="uploadedPhoto">              
+              <button type="submit" class="btn btn-primary m-3">Add</button>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
   
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 

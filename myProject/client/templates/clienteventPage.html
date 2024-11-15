@@ -87,7 +87,7 @@
         <div class="modal-body text-center">
           <!-- Image upload form -->
           <form
-            action="{% if request.user.is_authenticated %}/triggerRecognition/{{ request.user.id }}/{{ event.id }}/guest{% else %}/triggerRecognition/None/{{ event.id }}/guest{% endif %}"
+            action="{% if request.user.is_authenticated %}{% url 'checkSimilarImages' request.user.id event.id 'guest' %}{% else %}{% url 'checkSimilarImages' None event.id 'guest' %} {% endif %}"
             method="POST"
             enctype="multipart/form-data"
           >

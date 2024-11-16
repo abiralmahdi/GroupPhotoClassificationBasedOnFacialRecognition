@@ -223,3 +223,7 @@ def restrictEvent(request, eventID):
     event.published = False
     event.save()
     return JsonResponse({"status":"success"})
+
+
+def PeopleInEvent(request,eventID):
+    return render(request,"PeopleInEvent.html")

@@ -33,3 +33,11 @@ class userPicsRelation(models.Model):
 
     def __str__(self):
         return f"Image for {self.user}"
+    
+class AnonymousUserPicsRelation(models.Model):
+    image = models.ForeignKey(PicsRelation, on_delete=models.CASCADE)
+    user = models.CharField(max_length=100)
+    event = models.ForeignKey(Event, on_delete=models.CASCADE)
+
+    def __str__(self):
+        return f"Image for {self.user}"

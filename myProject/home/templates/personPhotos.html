@@ -1,0 +1,30 @@
+
+{%  extends 'layout.html' %}
+{% block body %}
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-danger">{{ message }}</div>
+    {% endfor %}
+{% endif %}
+
+<section class="text-gray-600 body-font">
+    <div class="container px-5 py-24 mx-auto">
+      <h2 class="text-center mb-3">{{relations.0.user}}'s Photos in {{event.name}}</h2>
+      <div class="flex flex-wrap -m-4">
+        
+        <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
+            <div class="d-flex flex flex-wrap">
+                {% for person in relations %}
+                <img src="/media/{{person.image.image}}" alt="Error Loading Image" class="flex" style="max-height: 300px; max-width: 300;" srcset="">
+                {% endfor %}
+            </div>
+          
+        </div>
+      </div>
+    </div>
+  </section>
+
+
+
+
+{% endblock %}

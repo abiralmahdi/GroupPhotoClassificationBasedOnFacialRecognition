@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
-from .models import Event, PicsRelation, userPicsRelation
+from .models import Event, PicsRelation, userPicsRelation, AnonymousUserPicsRelation
 from django.contrib import messages
 from .FacialRecognition import recognition
 import threading
@@ -98,19 +98,8 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
             result = recognition(image_path, profilePic)
             if result:
                 relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
-                relevant_pics.append(image_path)
-
-        if relevant_pics:
-            # Create a zip file for download
-            zip_buffer = BytesIO()
-            with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
-                for file_path in relevant_pics:
-                    zip_file.write(file_path, os.path.basename(file_path))
-            zip_buffer.seek(0)
-
-            response = HttpResponse(zip_buffer, content_type='application/zip')
-            response['Content-Disposition'] = f'attachment; filename="{personName}.zip"'
-            return response
+                if relevantPic:
+                    AnonymousUserPicsRelation.objects.create(user=personName, image=relevantPic, event=event_)
 
     # Guest mode
     elif mode == "guest":
@@ -225,5 +214,21 @@ def restrictEvent(request, eventID):
     return JsonResponse({"status":"success"})
 
 
-def PeopleInEvent(request,eventID):
-    return render(request,"PeopleInEvent.html")
+def PeopleInEvent(request, eventID):
+    event = Event.objects.get(id=eventID)
+    relations = AnonymousUserPicsRelation.objects.filter(event=event)
+    people = []
+    for relation in relations:
+        people.append(relation.user)
+    people = set(people)
+    people = list(people)
+    context = {"event":event, "people":people}
+    return render(request,"PeopleInEvent.html", context)
+
+@login_required
+def personPhotos(request, eventID, personName):
+    event = Event.objects.get(id=eventID)
+    relations = AnonymousUserPicsRelation.objects.filter(event=event, user=personName)
+
+    return render(request,"personPhotos.html", {"relations":relations, "event":event})
+ 

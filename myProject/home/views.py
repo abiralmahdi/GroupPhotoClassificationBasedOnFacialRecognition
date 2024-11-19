@@ -68,15 +68,31 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-def checkSimilarImages(request, user, event, mode):
-    userr = User.objects.get(id=user)
-    event_ = Event.objects.get(id=event)
+from django.shortcuts import get_object_or_404, redirect
+from django.http import HttpResponse
+import os
+import zipfile
+from io import BytesIO
+from django.conf import settings
+
+def checkSimilarImages(request, user=None, event=None, mode="guest"):
+    # Validate event existence
+    event_ = get_object_or_404(Event, id=event)
     pics = PicsRelation.objects.filter(event=event_)
     relevant_pics = []
 
+    # Validate user parameter
+    userr = None
+    if user is not None:
+        try:
+            userr = User.objects.get(id=user)  # Attempt to fetch the user if provided
+        except (User.DoesNotExist, ValueError):
+            userr = None  # Safely handle invalid user IDs or 'None'
+
+    # Host mode: File upload and recognition
     if mode == "host" and request.method == "POST":
         profilePic = request.FILES['uploadedPhoto']
-        personName = request.POST['personName']
+        personName = request.POST.get('personName', 'recognized_pics')
         for pic in pics:
             image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
             result = recognition(image_path, profilePic)
@@ -84,29 +100,53 @@ def checkSimilarImages(request, user, event, mode):
                 relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
                 relevant_pics.append(image_path)
 
-        # Create a zip file for download
         if relevant_pics:
+            # Create a zip file for download
             zip_buffer = BytesIO()
             with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
                 for file_path in relevant_pics:
                     zip_file.write(file_path, os.path.basename(file_path))
             zip_buffer.seek(0)
-            
+
             response = HttpResponse(zip_buffer, content_type='application/zip')
             response['Content-Disposition'] = f'attachment; filename="{personName}.zip"'
             return response
 
+    # Guest mode
     elif mode == "guest":
-        profilePic = userr.profilepicture
-        for pic in pics:
-            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-            result = recognition(image_path, profilePic)
-            if result:
-                relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
-                userPics, created = userPicsRelation.objects.get_or_create(image=relevantPic)
-                userPics.user.add(user)
+        profilePic = None
+        print(profilePic)
+        if userr:  # If a valid user object exists
+            profilePic = userr.profilepicture
+
+        if not profilePic:  # If profilePic is not provided
+            if request.method == "POST":
+                profilePic = request.FILES['uploadedPhoto']
+                print(profilePic)
+        if profilePic:
+            for pic in pics:
+                image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+                result = recognition(image_path, profilePic)
+                if result:
+                    relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
+                    relevant_pics.append(image_path)
+
+            if relevant_pics:
+                # Create a zip file for download
+                zip_buffer = BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+                    for file_path in relevant_pics:
+                        zip_file.write(file_path, os.path.basename(file_path))
+                zip_buffer.seek(0)
+
+                response = HttpResponse(zip_buffer, content_type='application/zip')
+                response['Content-Disposition'] = 'attachment; filename="YourPics.zip"'
+                return response
 
     return redirect("/")
+
+
+
     
 
 @login_required
@@ -183,3 +223,7 @@ def restrictEvent(request, eventID):
     event.published = False
     event.save()
     return JsonResponse({"status":"success"})
+
+
+def PeopleInEvent(request,eventID):
+    return render(request,"PeopleInEvent.html")

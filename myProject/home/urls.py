@@ -13,4 +13,6 @@ urlpatterns = [
     path('publishEvent/<str:eventID>', views.publishEvent, name='publishEvent'),
     path('checkEventStatus/<str:eventID>', views.checkEventStatus, name='checkEventStatus'),
     path('restrictEvent/<str:eventID>', views.restrictEvent, name='restrictEvent'),
+    path('myEvents/<str:eventID>/people/', views.PeopleInEvent, name='PeopleInEvent'),
+
 ]

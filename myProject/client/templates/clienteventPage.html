@@ -46,7 +46,19 @@
       >
         Find your Photos
       </button>
+      <br />
+      {% if request.user.id %}
+      <a
+        class="btn btn-dark"
+        id="findPhotos"
+        href="/triggerRecognition/{{request.user.id}}/{{event.id}}/guest"
+        ><button class="btn btn-success">
+          Find the Photos with my Profile Picture
+        </button></a
+      >
+      {%endif%}
     </h2>
+
     <div class="flex flex-wrap mt-4">
       {% for photo in photos %}
       <div class="lg:w-1/4 md:w-1/2 p-4 w-full">
@@ -84,6 +96,7 @@
             aria-label="Close"
           ></button>
         </div>
+
         <div class="modal-body text-center">
           <!-- Image upload form -->
           <form

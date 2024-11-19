@@ -107,7 +107,14 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
         print(profilePic)
         if userr:  # If a valid user object exists
             profilePic = userr.profilepicture
-
+            if profilePic:
+                for pic in pics:
+                    image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+                    result = recognition(image_path, profilePic)
+                    if result:
+                        relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))    
+                        if relevantPic:
+                            AnonymousUserPicsRelation.objects.create(user=user.username, image=relevantPic, event=event_)
         if not profilePic:  # If profilePic is not provided
             if request.method == "POST":
                 profilePic = request.FILES['uploadedPhoto']

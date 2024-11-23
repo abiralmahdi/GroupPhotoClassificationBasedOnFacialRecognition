@@ -9,25 +9,36 @@ arrGroupImgs = ["group.webp", "rdj4.jpg", "rdj3.jpg","abirGroup.jpg"]
 
 
 def recognition(img, userImg):
-    known_image = face_recognition.load_image_file(userImg) # Loading the image of the user
-    known_encoding = face_recognition.face_encodings(known_image)[0] # Encoding of the user's image
-    
+    # Load the user's image and compute its encoding
+    known_image = face_recognition.load_image_file(userImg)
+    known_encodings = face_recognition.face_encodings(known_image)
+    if not known_encodings:
+        # Handle case where no face is detected in the user's image
+        print("No face detected in the user's image.")
+        return False
+    known_encoding = known_encodings[0]
+    # Load and process the input image
     image = cv2.imread(img)
-    # This will loop over all the cropped faces in a group photo, and match the cropped faces with the 
-    # user's image. If a match is found, it will return True, else False.
-
-    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB) # Convert the image to RGB
-    try:
-        unknown_encoding = face_recognition.face_encodings(rgb_image)[0] # Find the encodings of the RGB image
-    except Exception as e:
-        pass
-
-    # Use the compare_faces function of the facial_recognition model to compare the cropped face and the user's real face
-    results = face_recognition.compare_faces([known_encoding], unknown_encoding) 
+    rgb_image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     
-    if results[0]:
-        return True
-    return False
+    try:
+        # Attempt to compute the encoding for the face in the image
+        unknown_encodings = face_recognition.face_encodings(rgb_image)
+        
+        if not unknown_encodings:
+            # No face detected in the input image
+            return False
+        
+        # Use the first encoding if multiple faces are detected
+        unknown_encoding = unknown_encodings[0]
+    except Exception as e:
+        # Log or handle the exception (optional)
+        print(f"Error during face encoding: {e}")
+        return False  # Fail gracefully if encoding fails
+    
+    # Compare the faces and return the result
+    results = face_recognition.compare_faces([known_encoding], unknown_encoding)
+    return results[0]
 
 
 def cropOut(image_path, userImg):

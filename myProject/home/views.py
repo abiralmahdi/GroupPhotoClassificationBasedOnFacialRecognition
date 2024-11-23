@@ -114,7 +114,7 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
                     if result:
                         relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))    
                         if relevantPic:
-                            AnonymousUserPicsRelation.objects.create(user=user.username, image=relevantPic, event=event_)
+                            AnonymousUserPicsRelation.objects.create(user=request.user.username, image=relevantPic, event=event_)
         if not profilePic:  # If profilePic is not provided
             if request.method == "POST":
                 profilePic = request.FILES['uploadedPhoto']

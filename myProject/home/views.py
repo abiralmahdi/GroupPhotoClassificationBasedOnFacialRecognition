@@ -2,8 +2,9 @@ from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import get_user_model
 from .models import Event, PicsRelation, userPicsRelation, AnonymousUserPicsRelation
+from django.shortcuts import get_object_or_404 
 from django.contrib import messages
-from .FacialRecognition import recognition
+from .FacialRecognition import cropOut
 import threading
 import os
 from django.conf import settings
@@ -68,12 +69,7 @@ def addEvents(request):
     # If it's not a POST request, redirect to the home page
     return redirect("/")
 
-from django.shortcuts import get_object_or_404, redirect
-from django.http import HttpResponse
-import os
-import zipfile
-from io import BytesIO
-from django.conf import settings
+
 
 def checkSimilarImages(request, user=None, event=None, mode="guest"):
     # Validate event existence
@@ -95,7 +91,7 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
         personName = request.POST.get('personName', 'recognized_pics')
         for pic in pics:
             image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-            result = recognition(image_path, profilePic)
+            result = cropOut(image_path, profilePic)
             if result:
                 relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
                 if relevantPic:
@@ -110,7 +106,7 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
             if profilePic:
                 for pic in pics:
                     image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-                    result = recognition(image_path, profilePic)
+                    result = cropOut(image_path, profilePic)
                     if result:
                         relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))    
                         if relevantPic:
@@ -122,7 +118,7 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
         if profilePic:
             for pic in pics:
                 image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
-                result = recognition(image_path, profilePic)
+                result = cropOut(image_path, profilePic)
                 if result:
                     relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
                     relevant_pics.append(image_path)
@@ -140,6 +136,89 @@ def checkSimilarImages(request, user=None, event=None, mode="guest"):
                 return response
 
     return redirect("/")
+
+
+
+
+
+
+def checkSimilarImages2(request, user=None, event=None, mode="guest"):
+    recognizedPicsArr = []
+    def threadWrapper(image_path, profilePic):
+        result = cropOut(image_path, profilePic)
+        recognizedPicsArr.append(result)
+        
+
+    # Validate event existence
+    event_ = get_object_or_404(Event, id=event)
+    pics = PicsRelation.objects.filter(event=event_)
+    relevant_pics = []
+
+    # Validate user parameter
+    userr = None
+    if user is not None:
+        try:
+            userr = User.objects.get(id=user)  # Attempt to fetch the user if provided
+        except (User.DoesNotExist, ValueError):
+            userr = None  # Safely handle invalid user IDs or 'None'
+
+    # Host mode: File upload and recognition
+    if mode == "host" and request.method == "POST":
+        profilePic = request.FILES['uploadedPhoto']
+        personName = request.POST.get('personName', 'recognized_pics')
+        threads = []
+        for pic in pics:
+            image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+            thread = threading.Thread(target=threadWrapper, args=(image_path, profilePic, recognizedPicsArr))
+            threads.append(thread)
+            thread.start()  # Start the thread
+            if result:
+                relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
+                if relevantPic:
+                    AnonymousUserPicsRelation.objects.create(user=personName, image=relevantPic, event=event_)
+
+
+        # Wait for all threads to complete
+        for thread in threads:
+            thread.join()
+
+    # Guest mode
+    elif mode == "guest":
+        profilePic = None
+        print(profilePic)
+        if userr:  # If a valid user object exists
+            profilePic = userr.profilepicture
+
+        if not profilePic:  # If profilePic is not provided
+            if request.method == "POST":
+                profilePic = request.FILES['uploadedPhoto']
+                print(profilePic)
+        if profilePic:
+            for pic in pics:
+                image_path = os.path.join(settings.MEDIA_ROOT, str(pic.image))
+                result = cropOut(image_path, profilePic)
+                if result:
+                    relevantPic = PicsRelation.objects.get(image=str(pic.image).replace('\\', '/'))
+                    relevant_pics.append(image_path)
+
+            if relevant_pics:
+                # Create a zip file for download
+                zip_buffer = BytesIO()
+                with zipfile.ZipFile(zip_buffer, 'w') as zip_file:
+                    for file_path in relevant_pics:
+                        zip_file.write(file_path, os.path.basename(file_path))
+                zip_buffer.seek(0)
+
+                response = HttpResponse(zip_buffer, content_type='application/zip')
+                response['Content-Disposition'] = 'attachment; filename="YourPics.zip"'
+                return response
+
+    return redirect("/")
+
+
+
+
+
 
 
 
